@@ -1,0 +1,198 @@
+import { createSlice } from "@reduxjs/toolkit"
+import type { Rug } from "@/types"
+
+// Sample data with real Unsplash images
+const initialRugs: Rug[] = [
+  {
+    id: "1",
+    name: "Geometric Circle",
+    description: "A beautiful circular rug with geometric patterns in soothing colors.",
+    price: 35,
+    image:
+      "https://images.unsplash.com/photo-1600166898405-da9535204843?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    size: "small",
+    type: "circle",
+    useCase: "livingroom",
+    dimensions: "50cm diameter",
+    materials: "Cotton, Wool",
+    productionTime: "2-3 days",
+    createdAt: "2023-10-15T12:00:00Z",
+  },
+  {
+    id: "2",
+    name: "Modern Rectangle",
+    description: "A sleek rectangular rug with modern design elements perfect for any space.",
+    price: 45,
+    image:
+      "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    size: "medium",
+    type: "rectangle",
+    useCase: "bedroom",
+    dimensions: "80cm x 120cm",
+    materials: "Wool, Acrylic",
+    productionTime: "3-4 days",
+    createdAt: "2023-11-20T12:00:00Z",
+  },
+  {
+    id: "3",
+    name: "Abstract Art",
+    description: "An artistic rug featuring abstract patterns and vibrant colors.",
+    price: 60,
+    image:
+      "https://images.unsplash.com/photo-1575414003880-048b61ae26bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    size: "large",
+    type: "rectangle",
+    useCase: "livingroom",
+    dimensions: "120cm x 180cm",
+    materials: "Premium Wool",
+    productionTime: "4-5 days",
+    createdAt: "2023-12-05T12:00:00Z",
+  },
+  {
+    id: "4",
+    name: "Minimalist Circle",
+    description: "A simple yet elegant circular rug with minimalist design.",
+    price: 25,
+    image:
+      "https://images.unsplash.com/photo-1594040226829-7f251ab46d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    size: "small",
+    type: "circle",
+    useCase: "bathroom",
+    dimensions: "45cm diameter",
+    materials: "Cotton",
+    productionTime: "2 days",
+    createdAt: "2024-01-10T12:00:00Z",
+  },
+  {
+    id: "5",
+    name: "Luxury Car Mat",
+    description: "A premium car mat designed for comfort and style.",
+    price: 40,
+    image:
+      "https://images.unsplash.com/photo-1605774337664-7a846e9cdf17?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    size: "medium",
+    type: "custom",
+    useCase: "carmat",
+    dimensions: "60cm x 40cm",
+    materials: "Durable Synthetic Fiber",
+    productionTime: "3 days",
+    createdAt: "2024-02-15T12:00:00Z",
+  },
+  {
+    id: "6",
+    name: "Wall Tapestry",
+    description: "A beautiful wall hanging with intricate patterns.",
+    price: 55,
+    image:
+      "https://images.unsplash.com/photo-1615529328331-f8917597711f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    size: "medium",
+    type: "rectangle",
+    useCase: "wall",
+    dimensions: "90cm x 60cm",
+    materials: "Cotton, Wool",
+    productionTime: "4 days",
+    createdAt: "2024-03-20T12:00:00Z",
+  },
+  {
+    id: "7",
+    name: "Office Comfort",
+    description: "A comfortable rug designed specifically for office spaces.",
+    price: 50,
+    image:
+      "https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    size: "medium",
+    type: "rectangle",
+    useCase: "office",
+    dimensions: "100cm x 80cm",
+    materials: "Wool, Synthetic Blend",
+    productionTime: "3-4 days",
+    createdAt: "2024-04-05T12:00:00Z",
+  },
+  {
+    id: "8",
+    name: "Luxury Large",
+    description: "A premium large rug for spacious living areas.",
+    price: 75,
+    image:
+      "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    size: "large",
+    type: "rectangle",
+    useCase: "livingroom",
+    dimensions: "200cm x 150cm",
+    materials: "Premium Wool, Silk Accents",
+    productionTime: "5-6 days",
+    createdAt: "2024-05-10T12:00:00Z",
+  },
+  {
+    id: "9",
+    name: "Bedroom Bliss",
+    description: "A soft, plush rug perfect for bedroom comfort.",
+    price: 45,
+    image:
+      "https://images.unsplash.com/photo-1595428774223-ef52624120d2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    size: "medium",
+    type: "rectangle",
+    useCase: "bedroom",
+    dimensions: "120cm x 80cm",
+    materials: "Soft Cotton Blend",
+    productionTime: "3-4 days",
+    createdAt: "2024-05-25T12:00:00Z",
+  },
+  {
+    id: "10",
+    name: "Bohemian Dream",
+    description: "A vibrant bohemian-style rug with intricate patterns and rich colors.",
+    price: 65,
+    image:
+      "https://images.unsplash.com/photo-1581539250439-c96689b516dd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    size: "large",
+    type: "rectangle",
+    useCase: "livingroom",
+    dimensions: "180cm x 120cm",
+    materials: "Cotton, Wool, Jute",
+    productionTime: "4-5 days",
+    createdAt: "2024-06-01T12:00:00Z",
+  },
+  {
+    id: "11",
+    name: "Moroccan Inspired",
+    description: "A luxurious rug inspired by traditional Moroccan designs.",
+    price: 70,
+    image:
+      "https://images.unsplash.com/photo-1588362951121-9c584e90e893?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    size: "large",
+    type: "rectangle",
+    useCase: "livingroom",
+    dimensions: "160cm x 230cm",
+    materials: "Premium Wool",
+    productionTime: "5-6 days",
+    createdAt: "2024-06-10T12:00:00Z",
+  },
+  {
+    id: "12",
+    name: "Scandinavian Simplicity",
+    description: "A clean, minimalist rug inspired by Scandinavian design principles.",
+    price: 55,
+    image:
+      "https://images.unsplash.com/photo-1617104678098-de229db51175?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80",
+    size: "medium",
+    type: "rectangle",
+    useCase: "bedroom",
+    dimensions: "140cm x 200cm",
+    materials: "Wool, Cotton",
+    productionTime: "3-4 days",
+    createdAt: "2024-06-15T12:00:00Z",
+  },
+]
+
+const rugsSlice = createSlice({
+  name: "rugs",
+  initialState: {
+    items: initialRugs,
+  },
+  reducers: {
+    // Add reducers if needed
+  },
+})
+
+export default rugsSlice.reducer
