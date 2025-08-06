@@ -49,7 +49,7 @@ const convertApiProductToRug = (product: FinishedProduct): Rug => {
   // Transform image URL to include storage base URL
   const imageUrl = product.default_image.startsWith("http")
     ? product.default_image
-    : `http://stitchit.test/storage/${product.default_image}`;
+    : `https://stitchit.insigprojects.co.zw/storage/${product.default_image}`;
 
   return {
     id: product.id.toString(),

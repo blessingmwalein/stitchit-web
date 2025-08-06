@@ -1,122 +1,122 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://stitchit.test/api/client'
+// API Configuration
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://stitchit.insigprojects.co.zw/api/client'
 
 export interface ApiResponse<T> {
   success: boolean
   message: string
-  response: T // Changed from 'data' to 'response' to match actual API
+  response: T
 }
 
 export interface FinishedProduct {
   id: number
   name: string
   description: string
-  default_image: string
   total_price: number
-  unit: string
+  default_image: string
+  size_display_name: string
   shape: string
   use_case: string
   use_case_display_name: string
-  size_display_name: string
   length: number
   width: number
   created_at: string
 }
 
-export interface PaginatedResponse<T> {
-  data: T[]
-  current_page: number
-  per_page: number
-  total: number
-  last_page: number
-  from: number
-  to: number
-}
-
-export interface GroupedProducts {
-  [key: string]: {
-    use_case: string
-    display_name: string
-    products: FinishedProduct[]
-  }
+export interface GroupedProduct {
+  id: number
+  name: string
+  description: string
+  total_price: number
+  default_image: string
+  size_display_name: string
+  shape: string
+  use_case: string
+  use_case_display_name: string
+  length: number
+  width: number
+  created_at: string
 }
 
 export interface FilterOptions {
-  [key: string]: string
+  sizes: string[]
+  types: string[]
+  use_cases: string[]
 }
 
 class ApiService {
-  private async request<T>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
-    try {
-      const url = `${BASE_URL}${endpoint}`
-      
-      const response = await fetch(url, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          ...options?.headers,
-        },
-      })
+  private baseUrl: string
 
+  constructor() {
+    this.baseUrl = BASE_URL
+  }
+
+  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const url = `${this.baseUrl}${endpoint}`
+    
+    const config: RequestInit = {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        ...options.headers,
+      },
+      ...options,
+    }
+
+    try {
+      const response = await fetch(url, config)
+      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-
-      const data = await response.json()
-      return data
+      
+      const data: ApiResponse<T> = await response.json()
+      
+      if (!data.success) {
+        throw new Error(data.message || 'API request failed')
+      }
+      
+      return data.response
     } catch (error) {
       console.error('API request failed:', error)
       throw error
     }
   }
 
-  async getFinishedProducts(params?: {
-    search?: string
-    size?: string
-    type?: string
-    use_case?: string
-    page?: number
-  }): Promise<ApiResponse<PaginatedResponse<FinishedProduct>>> {
-    const searchParams = new URLSearchParams()
+  // Get all finished products
+  async getFinishedProducts(params?: { page?: number; use_case?: string }): Promise<FinishedProduct[]> {
+    const queryParams = new URLSearchParams()
+    if (params?.page) queryParams.append('page', params.page.toString())
+    if (params?.use_case) queryParams.append('use_case', params.use_case)
     
-    if (params?.search) searchParams.append('search', params.search)
-    if (params?.size) searchParams.append('size', params.size)
-    if (params?.type) searchParams.append('type', params.type)
-    if (params?.use_case) searchParams.append('use_case', params.use_case)
-    if (params?.page) searchParams.append('page', params.page.toString())
-
-    const queryString = searchParams.toString()
+    const queryString = queryParams.toString()
     const endpoint = `/finished-products${queryString ? `?${queryString}` : ''}`
     
-    return this.request<PaginatedResponse<FinishedProduct>>(endpoint)
+    return this.request<FinishedProduct[]>(endpoint)
   }
 
-  async getGroupedProducts(params?: {
-    search?: string
-    size?: string
-    type?: string
-  }): Promise<ApiResponse<GroupedProducts>> {
-    const searchParams = new URLSearchParams()
-    
-    if (params?.search) searchParams.append('search', params.search)
-    if (params?.size) searchParams.append('size', params.size)
-    if (params?.type) searchParams.append('type', params.type)
-
-    const queryString = searchParams.toString()
-    const endpoint = `/finished-products/grouped${queryString ? `?${queryString}` : ''}`
-    
-    return this.request<GroupedProducts>(endpoint)
+  // Get grouped products
+  async getGroupedProducts(): Promise<GroupedProduct[]> {
+    return this.request<GroupedProduct[]>('/finished-products/grouped')
   }
 
-  async getUseCases(): Promise<ApiResponse<FilterOptions>> {
-    return this.request<FilterOptions>('/use-cases')
+  // Get filter options
+  async getFilterOptions(): Promise<FilterOptions> {
+    return this.request<FilterOptions>('/filter-options')
   }
 
-  async getSizes(): Promise<ApiResponse<FilterOptions>> {
-    return this.request<FilterOptions>('/sizes')
+  // Get sizes
+  async getSizes(): Promise<string[]> {
+    return this.request<string[]>('/sizes')
   }
 
-  async getTypes(): Promise<ApiResponse<FilterOptions>> {
-    return this.request<FilterOptions>('/types')
+  // Get types
+  async getTypes(): Promise<string[]> {
+    return this.request<string[]>('/types')
+  }
+
+  // Get use cases
+  async getUseCases(): Promise<string[]> {
+    return this.request<string[]>('/use-cases')
   }
 }
 

@@ -35,7 +35,7 @@ const initialState: AuthState = {
 }
 
 // API Base URL
-const API_BASE_URL = "http://stitchit.test/api/auth/client"
+const API_BASE_URL = "https://stitchit.insigprojects.co.zw/api/auth/client"
 
 // Async thunks for API calls
 export const loginAsync = createAsyncThunk(
