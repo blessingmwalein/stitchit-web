@@ -71,7 +71,7 @@ interface RugsState {
       display_name: string;
       products: FinishedProduct[];
     };
-  }[];
+  };
   filterOptions: {
     useCases: { [key: string]: string };
     sizes: { [key: string]: string };
@@ -88,7 +88,7 @@ interface RugsState {
 const initialState: RugsState = {
   items: [],
   apiProducts: [],
-  groupedProducts: [],
+  groupedProducts: {},
   filterOptions: {
     useCases: {},
     sizes: {},
@@ -167,11 +167,23 @@ const rugsSlice = createSlice({
         // Handle different response structures
         if (action.payload && typeof action.payload === 'object') {
           if (Array.isArray(action.payload)) {
-            // Direct array response
-            state.groupedProducts = action.payload;
+            // Convert array to object structure
+            const groupedObj: { [key: string]: any } = {};
+            action.payload.forEach((item: any) => {
+              if (item.use_case) {
+                groupedObj[item.use_case] = item;
+              }
+            });
+            state.groupedProducts = groupedObj;
           } else if (action.payload.response && Array.isArray(action.payload.response)) {
-            // Wrapped response
-            state.groupedProducts = action.payload.response;
+            // Wrapped response - convert array to object
+            const groupedObj: { [key: string]: any } = {};
+            action.payload.response.forEach((item: any) => {
+              if (item.use_case) {
+                groupedObj[item.use_case] = item;
+              }
+            });
+            state.groupedProducts = groupedObj;
           } else {
             // Object response (grouped by use case)
             state.groupedProducts = action.payload;
