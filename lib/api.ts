@@ -71,13 +71,16 @@ class ApiService {
       
       const data: ApiResponse<T> = await response.json()
       
+      // Log the response structure for debugging
+      console.log(`API Response for ${endpoint}:`, data)
+      
       if (!data.success) {
         throw new Error(data.message || 'API request failed')
       }
       
       return data.response
     } catch (error) {
-      console.error('API request failed:', error)
+      console.error(`API request failed for ${endpoint}:`, error)
       throw error
     }
   }

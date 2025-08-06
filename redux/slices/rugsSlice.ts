@@ -5,15 +5,9 @@ import { apiService, type FinishedProduct } from "@/lib/api";
 // Async thunk for fetching finished products
 export const fetchFinishedProducts = createAsyncThunk(
   "rugs/fetchFinishedProducts",
-  async (params?: {
-    search?: string;
-    size?: string;
-    type?: string;
-    use_case?: string;
-    page?: number;
-  }) => {
+  async (params?: { page?: number; use_case?: string }) => {
     const response = await apiService.getFinishedProducts(params);
-    return response.response;
+    return response;
   }
 );
 
@@ -22,7 +16,7 @@ export const fetchGroupedProducts = createAsyncThunk(
   "rugs/fetchGroupedProducts",
   async (params?: { search?: string; size?: string; type?: string }) => {
     const response = await apiService.getGroupedProducts(params);
-    return response.response;
+    return response;
   }
 );
 
@@ -37,9 +31,9 @@ export const fetchFilterOptions = createAsyncThunk(
     ]);
 
     return {
-      useCases: useCasesResponse.response,
-      sizes: sizesResponse.response,
-      types: typesResponse.response,
+      useCases: useCasesResponse,
+      sizes: sizesResponse,
+      types: typesResponse,
     };
   }
 );
@@ -77,7 +71,7 @@ interface RugsState {
       display_name: string;
       products: FinishedProduct[];
     };
-  };
+  }[];
   filterOptions: {
     useCases: { [key: string]: string };
     sizes: { [key: string]: string };
@@ -94,7 +88,7 @@ interface RugsState {
 const initialState: RugsState = {
   items: [],
   apiProducts: [],
-  groupedProducts: {},
+  groupedProducts: [],
   filterOptions: {
     useCases: {},
     sizes: {},
@@ -141,8 +135,18 @@ const rugsSlice = createSlice({
           // Paginated response structure
           state.apiProducts = action.payload.data;
           state.items = action.payload.data.map(convertApiProductToRug);
+        } else if (
+          action.payload &&
+          action.payload.response &&
+          Array.isArray(action.payload.response)
+        ) {
+          // API response wrapper structure
+          state.apiProducts = action.payload.response;
+          state.items = action.payload.response.map(convertApiProductToRug);
         } else {
           console.error("Unexpected payload structure:", action.payload);
+          console.log("Payload type:", typeof action.payload);
+          console.log("Payload keys:", action.payload ? Object.keys(action.payload) : "null");
           state.error = "Invalid API response structure";
         }
       })
@@ -159,7 +163,23 @@ const rugsSlice = createSlice({
       })
       .addCase(fetchGroupedProducts.fulfilled, (state, action) => {
         state.groupedLoading = false;
-        state.groupedProducts = action.payload;
+        
+        // Handle different response structures
+        if (action.payload && typeof action.payload === 'object') {
+          if (Array.isArray(action.payload)) {
+            // Direct array response
+            state.groupedProducts = action.payload;
+          } else if (action.payload.response && Array.isArray(action.payload.response)) {
+            // Wrapped response
+            state.groupedProducts = action.payload.response;
+          } else {
+            // Object response (grouped by use case)
+            state.groupedProducts = action.payload;
+          }
+        } else {
+          console.error("Unexpected grouped products payload:", action.payload);
+          state.groupedError = "Invalid grouped products response structure";
+        }
       })
       .addCase(fetchGroupedProducts.rejected, (state, action) => {
         state.groupedLoading = false;
@@ -175,7 +195,20 @@ const rugsSlice = createSlice({
       })
       .addCase(fetchFilterOptions.fulfilled, (state, action) => {
         state.filtersLoading = false;
-        state.filterOptions = action.payload;
+        
+        // Handle different response structures
+        if (action.payload && typeof action.payload === 'object') {
+          if (action.payload.response && typeof action.payload.response === 'object') {
+            // Wrapped response
+            state.filterOptions = action.payload.response;
+          } else {
+            // Direct object response
+            state.filterOptions = action.payload;
+          }
+        } else {
+          console.error("Unexpected filter options payload:", action.payload);
+          state.filtersError = "Invalid filter options response structure";
+        }
       })
       .addCase(fetchFilterOptions.rejected, (state, action) => {
         state.filtersLoading = false;

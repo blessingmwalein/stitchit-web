@@ -13,16 +13,18 @@ export default function UseCases() {
   const { groupedProducts, groupedLoading, groupedError } = useGroupedRugs()
   const { filterOptions, filtersLoading } = useFilterOptions()
 
-  // Get use cases from API
-  const useCases = Object.entries(filterOptions.useCases).map(([key, value]) => ({
-    id: key,
-    title: value,
-    description: getUseCaseDescription(key),
-    image: getUseCaseImage(key),
-  }))
+  // Get use cases from API with null check
+  const useCases = filterOptions?.useCases 
+    ? Object.entries(filterOptions.useCases).map(([key, value]) => ({
+        id: key,
+        title: value,
+        description: getUseCaseDescription(key),
+        image: getUseCaseImage(key),
+      }))
+    : []
 
   const activeUseCase = useCases.find((useCase) => useCase.id === activeTab)
-  const activeGroupedProducts = groupedProducts[activeTab]?.products || []
+  const activeGroupedProducts = groupedProducts?.[activeTab]?.products || []
 
   // Helper functions for use case descriptions and images
   function getUseCaseDescription(useCase: string): string {
