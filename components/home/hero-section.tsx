@@ -4,10 +4,11 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { ArrowUpRight } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 
 export default function HeroSection() {
   return (
-    <div className="min-h-screen pt-32 pb-16">
+    <div className="min-h-screen pt-10 pb-16">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[80vh]">
           {/* Main Large Card - Left */}
@@ -18,30 +19,31 @@ export default function HeroSection() {
             className="lg:col-span-2 relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-100 to-orange-200"
           >
             <div className="absolute inset-0">
-              <img src="/logo/banner.jpg" alt="Custom tufted rug showcase" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
+              <img src="/home/main.jpg" alt="Custom tufted rug showcase" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-black/30" />
             </div>
 
-            <div className="relative z-10 p-8 lg:p-12 h-full flex flex-col justify-between">
+            <div className="relative z-10 p-8 lg:p-12 h-full flex flex-col justify-center items-center text-center">
               <div className="space-y-6">
-                <h1 className="text-4xl lg:text-6xl font-bold text-white leading-tight">
-                  Custom
+                <h1 className="text-2xl lg:text-4xl font-bold text-white leading-tight">
+                  Bespoke
                   <br />
-                  Tufted
+                  Handcrafted
                   <br />
                   Rugs
                 </h1>
 
                 <p className="text-lg text-white/90 max-w-md">
-                  100+ Design possibilities for your space
+                  We create custom bespoke rugs in Zimbabwe
                   <br />
-                  Handcrafted in Zimbabwe
+                  and deliver across all towns and cities
                 </p>
               </div>
 
-              <Link href="/order">
-                <Button className="bg-black text-white hover:bg-gray-800 rounded-full px-8 py-3 text-lg font-medium w-fit">
+              <Link href="/order" className="mt-8">
+                <Button className="bg-orange-500 text-white hover:bg-orange-700 rounded-full px-12 py-6 text-lg font-medium">
                   START YOUR DESIGN
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
             </div>
@@ -58,7 +60,7 @@ export default function HeroSection() {
             >
               <div className="absolute inset-0">
                 <img
-                  src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                  src="/home/bedroom.png"
                   alt="Bedroom rugs"
                   className="w-full h-full object-cover"
                 />
@@ -89,7 +91,7 @@ export default function HeroSection() {
             >
               <div className="absolute inset-0">
                 <img
-                  src="https://images.unsplash.com/photo-1616137422495-1e9e46e2aa77?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                  src="/home/living.png"
                   alt="Living room rugs"
                   className="w-full h-full object-cover"
                 />
@@ -116,7 +118,41 @@ export default function HeroSection() {
         {/* Bottom Row - Three Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
           {/* Bottom Left Card - Quick Order Form */}
-    
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-green-100 to-green-200 h-80"
+          >
+            <div className="relative z-10 p-8 h-full flex flex-col justify-center text-center">
+              <div className="space-y-6">
+                <h2 className="text-3xl lg:text-4xl font-bold text-black">
+                  Get Started
+                  <br />
+                  Today
+                </h2>
+
+                <p className="text-gray-600 text-lg leading-relaxed mb-2">
+                  Join our community and start creating
+                  <br />
+                  your custom tufted rugs today.
+                </p>
+
+                <div className="flex flex-col space-y-3">
+                  <Link href="/register">
+                    <Button className="bg-black text-white hover:bg-gray-800 rounded-full px-8 py-3 text-lg font-medium w-full">
+                      Create Account
+                    </Button>
+                  </Link>
+                  <Link href="/login">
+                    <Button variant="outline" className="border-black text-black hover:bg-black hover:text-white rounded-full px-8 py-3 text-lg font-medium w-full">
+                      Sign In
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </motion.div>
 
           {/* Bottom Middle Card - Custom Inspirations */}
           <motion.div
@@ -163,36 +199,7 @@ export default function HeroSection() {
           >
             <div className="absolute inset-0">
               <img
-                src="https://images.unsplash.com/photo-1615529328331-f8917597711f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
-                alt="Wall hangings"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-black/30" />
-            </div>
-
-            <div className="relative z-10 p-8 h-full flex flex-col justify-between">
-              <h2 className="text-3xl lg:text-4xl font-bold text-white">
-                Artistry never
-                <br />
-                gets old
-              </h2>
-
-              <Link href="/gallery?category=wall" className="self-end">
-                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
-                  <ArrowUpRight className="h-6 w-6" />
-                </Button>
-              </Link>
-            </div>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-purple-100 to-purple-200 h-80"
-          >
-            <div className="absolute inset-0">
-              <img
-                src="https://images.unsplash.com/photo-1615529328331-f8917597711f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                src="/home/art.jpg"
                 alt="Wall hangings"
                 className="w-full h-full object-cover"
               />

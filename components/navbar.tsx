@@ -1,31 +1,45 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
-import { Menu, X, ShoppingBag, User, Phone, Mail, MapPin, ChevronDown } from "lucide-react"
-import { useSelector } from "react-redux"
-import type { RootState } from "@/redux/store"
-import { Button } from "@/components/ui/button"
-import { ModeToggle } from "@/components/mode-toggle"
-import Image from "next/image"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Menu,
+  X,
+  ShoppingBag,
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  ChevronDown,
+} from "lucide-react";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store";
+import { Button } from "@/components/ui/button";
+import { ModeToggle } from "@/components/mode-toggle";
+import Image from "next/image";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Navbar() {
-  const pathname = usePathname()
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const { isLoggedIn } = useSelector((state: RootState) => state.auth)
-  const { items } = useSelector((state: RootState) => state.cart)
+  const pathname = usePathname();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isLoggedIn } = useSelector((state: RootState) => state.auth);
+  const { items } = useSelector((state: RootState) => state.cart);
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10)
-    }
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -44,41 +58,52 @@ export default function Navbar() {
     { name: "Custom Order", path: "/order" },
     { name: "Our Process", path: "/process" },
     { name: "Pricing", path: "/pricing" },
-  ]
+  ];
 
   return (
     <>
       {/* Top Bar */}
-      <div className="bg-gray-900 text-white py-2 text-sm">
+      <div className="bg-gray-900 text-white py-2 text-sm fixed top-0 left-0 right-0 z-50">
         <div className="container mx-auto px-4 flex justify-between items-center">
           <div className="flex items-center space-x-6">
             <div className="flex items-center space-x-2">
               <Phone className="h-4 w-4" />
-              <span>+263 123 456 789</span>
+              <span>+263 788 959 677 / +263 772 440 088</span>
             </div>
             <div className="flex items-center space-x-2">
               <Mail className="h-4 w-4" />
-              <span>hello@stitchit.co.zw</span>
+              <span>stichiitt@gmail.com</span>
             </div>
             <div className="hidden md:flex items-center space-x-2">
               <MapPin className="h-4 w-4" />
               <span>Harare, Zimbabwe</span>
             </div>
           </div>
-          <div className="text-sm">Free shipping on orders over $100</div>
+          <div className="text-sm">
+            Delivery close to Harare CBD $5 and provides in Zimbabwe wide $7 -
+            $10
+          </div>
         </div>
       </div>
 
       {/* Main Navbar */}
       <header
-        className={`py-4 fixed left-0 right-0 top-[40px] z-50 transition-all duration-300 ${
-          isScrolled ? "bg-white/95 backdrop-blur-md shadow-lg dark:bg-gray-950/95" : "bg-white dark:bg-gray-950"
+        className={`py-4 fixed left-0 right-0 top-[40px] z-40 transition-all duration-300 ${
+          isScrolled
+            ? "bg-white/95 backdrop-blur-md shadow-lg dark:bg-gray-950/95"
+            : "bg-white dark:bg-gray-950"
         }`}
       >
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3">
-            <Image src="/logo/STICHIT-01.png" width={120} height={60} alt="StitchIt Logo" className="h-12 w-auto" />
+            <Image
+              src="/logo/STICHIT-01.png"
+              width={120}
+              height={60}
+              alt="StitchIt Logo"
+              className="h-12 w-auto"
+            />
           </Link>
 
           {/* Desktop Nav */}
@@ -106,7 +131,9 @@ export default function Navbar() {
                     <Link
                       href={link.path}
                       className={`relative text-base font-medium transition-colors hover:text-[#e98234] ${
-                        pathname === link.path ? "text-[#e98234]" : "text-gray-700 dark:text-gray-300"
+                        pathname === link.path
+                          ? "text-[#e98234]"
+                          : "text-gray-700 dark:text-gray-300"
                       }`}
                     >
                       {link.name}
@@ -129,7 +156,11 @@ export default function Navbar() {
             <ModeToggle />
 
             <Link href="/cart">
-              <Button variant="ghost" size="icon" className="relative hover:bg-[#e98234]/10">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative hover:bg-[#e98234]/10"
+              >
                 <ShoppingBag className="h-5 w-5" />
                 {items.length > 0 && (
                   <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#e98234] text-xs text-white">
@@ -139,11 +170,30 @@ export default function Navbar() {
               </Button>
             </Link>
 
-            <Link href="/dashboard">
-              <Button variant="ghost" size="icon" className="hover:bg-[#e98234]/10">
-                <User className="h-5 w-5" />
-              </Button>
-            </Link>
+            {isLoggedIn ? (
+              <Link href="/dashboard">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hover:bg-[#e98234]/10"
+                >
+                  <User className="h-5 w-5" />
+                </Button>
+              </Link>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Link href="/login">
+                  <Button variant="ghost" className="text-sm">
+                    Login
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button className="bg-[#e98234] hover:bg-[#d67429] text-white text-sm">
+                    Register
+                  </Button>
+                </Link>
+              </div>
+            )}
 
             {/* Mobile Menu Toggle */}
             <Button
@@ -152,7 +202,11 @@ export default function Navbar() {
               className="lg:hidden"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </Button>
           </div>
         </div>
@@ -172,7 +226,9 @@ export default function Navbar() {
                     <Link
                       href={link.path}
                       className={`block py-2 text-base font-medium ${
-                        pathname === link.path ? "text-[#e98234]" : "text-gray-700 dark:text-gray-300"
+                        pathname === link.path
+                          ? "text-[#e98234]"
+                          : "text-gray-700 dark:text-gray-300"
                       }`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
@@ -201,5 +257,5 @@ export default function Navbar() {
         </AnimatePresence>
       </header>
     </>
-  )
+  );
 }

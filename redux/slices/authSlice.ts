@@ -91,6 +91,7 @@ export const registerAsync = createAsyncThunk(
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
+          Authorization: "Bearer 123",
         },
         body: JSON.stringify(userData),
       })

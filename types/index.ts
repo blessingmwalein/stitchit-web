@@ -7,6 +7,7 @@ export interface Rug {
   size: string
   type: string
   useCase: string
+  useCaseDisplayName: string
   dimensions: string
   materials: string
   productionTime: string

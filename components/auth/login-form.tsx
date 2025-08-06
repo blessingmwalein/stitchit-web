@@ -52,11 +52,6 @@ export default function LoginForm() {
       transition={{ duration: 0.5 }}
       className="space-y-6"
     >
-      <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Welcome Back</h2>
-        <p className="text-gray-600 dark:text-gray-400">Sign in to your account</p>
-      </div>
-
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email" className="text-sm font-medium">
@@ -80,7 +75,7 @@ export default function LoginForm() {
             <Label htmlFor="password" className="text-sm font-medium">
               Password
             </Label>
-            <Button variant="link" className="h-auto p-0 text-xs text-[#e98234] hover:text-[#d67429]">
+            <Button variant="link" className="h-auto p-0 text-xs text-blue-600 hover:text-blue-500">
               Forgot password?
             </Button>
           </div>
@@ -106,8 +101,8 @@ export default function LoginForm() {
           {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
         </div>
 
-        <Button type="submit" className="w-full bg-[#e98234] hover:bg-[#d67429] text-white py-3" disabled={loading}>
-          {loading ? "Signing in..." : "Sign In"}
+        <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3" disabled={loading}>
+          {loading ? "Signing in..." : "Continue"}
         </Button>
       </form>
     </motion.div>

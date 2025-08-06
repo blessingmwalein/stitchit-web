@@ -1,18 +1,32 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Skeleton } from "@/components/ui/skeleton"
 import type { Rug } from "@/types"
+
+interface FilterOptions {
+  useCases: { [key: string]: string }
+  sizes: { [key: string]: string }
+  types: { [key: string]: string }
+}
 
 interface GalleryFiltersProps {
   rugs: Rug[]
   setFilteredRugs: (rugs: Rug[]) => void
+  filterOptions: FilterOptions
+  filtersLoading: boolean
 }
 
-export default function GalleryFilters({ rugs, setFilteredRugs }: GalleryFiltersProps) {
+export default function GalleryFilters({ 
+  rugs, 
+  setFilteredRugs, 
+  filterOptions, 
+  filtersLoading 
+}: GalleryFiltersProps) {
   const [filters, setFilters] = useState({
     size: "",
     type: "",
@@ -29,15 +43,15 @@ export default function GalleryFilters({ rugs, setFilteredRugs }: GalleryFilters
   const applyFilters = (currentFilters = filters) => {
     let filtered = [...rugs]
 
-    if (currentFilters.size) {
+    if (currentFilters.size && currentFilters.size !== "all") {
       filtered = filtered.filter((rug) => rug.size === currentFilters.size)
     }
 
-    if (currentFilters.type) {
+    if (currentFilters.type && currentFilters.type !== "all") {
       filtered = filtered.filter((rug) => rug.type === currentFilters.type)
     }
 
-    if (currentFilters.useCase) {
+    if (currentFilters.useCase && currentFilters.useCase !== "all") {
       filtered = filtered.filter((rug) => rug.useCase === currentFilters.useCase)
     }
 
@@ -61,6 +75,11 @@ export default function GalleryFilters({ rugs, setFilteredRugs }: GalleryFilters
     setFilteredRugs(rugs)
   }
 
+  // Update filtered rugs when rugs change
+  useEffect(() => {
+    applyFilters()
+  }, [rugs])
+
   return (
     <div className="mb-8 rounded-xl border bg-card p-6 shadow-sm">
       <div className="mb-6 grid gap-4 md:grid-cols-4">
@@ -76,50 +95,65 @@ export default function GalleryFilters({ rugs, setFilteredRugs }: GalleryFilters
 
         <div>
           <Label htmlFor="size">Size</Label>
-          <Select value={filters.size} onValueChange={(value) => handleFilterChange("size", value)}>
-            <SelectTrigger id="size">
-              <SelectValue placeholder="All sizes" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All sizes</SelectItem>
-              <SelectItem value="small">Small</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="large">Large</SelectItem>
-            </SelectContent>
-          </Select>
+          {filtersLoading ? (
+            <Skeleton className="h-10 w-full" />
+          ) : (
+            <Select value={filters.size} onValueChange={(value) => handleFilterChange("size", value)}>
+              <SelectTrigger id="size">
+                <SelectValue placeholder="All sizes" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All sizes</SelectItem>
+                {Object.entries(filterOptions.sizes).map(([key, value]) => (
+                  <SelectItem key={key} value={key}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         <div>
           <Label htmlFor="type">Type</Label>
-          <Select value={filters.type} onValueChange={(value) => handleFilterChange("type", value)}>
-            <SelectTrigger id="type">
-              <SelectValue placeholder="All types" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All types</SelectItem>
-              <SelectItem value="circle">Circle</SelectItem>
-              <SelectItem value="rectangle">Rectangle</SelectItem>
-              <SelectItem value="custom">Custom</SelectItem>
-            </SelectContent>
-          </Select>
+          {filtersLoading ? (
+            <Skeleton className="h-10 w-full" />
+          ) : (
+            <Select value={filters.type} onValueChange={(value) => handleFilterChange("type", value)}>
+              <SelectTrigger id="type">
+                <SelectValue placeholder="All types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All types</SelectItem>
+                {Object.entries(filterOptions.types).map(([key, value]) => (
+                  <SelectItem key={key} value={key}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         <div>
           <Label htmlFor="useCase">Use Case</Label>
-          <Select value={filters.useCase} onValueChange={(value) => handleFilterChange("useCase", value)}>
-            <SelectTrigger id="useCase">
-              <SelectValue placeholder="All use cases" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All use cases</SelectItem>
-              <SelectItem value="bedroom">Bedroom</SelectItem>
-              <SelectItem value="livingroom">Living Room</SelectItem>
-              <SelectItem value="bathroom">Bathroom</SelectItem>
-              <SelectItem value="office">Office</SelectItem>
-              <SelectItem value="carmat">Car Mat</SelectItem>
-              <SelectItem value="wall">Wall Hanging</SelectItem>
-            </SelectContent>
-          </Select>
+          {filtersLoading ? (
+            <Skeleton className="h-10 w-full" />
+          ) : (
+            <Select value={filters.useCase} onValueChange={(value) => handleFilterChange("useCase", value)}>
+              <SelectTrigger id="useCase">
+                <SelectValue placeholder="All use cases" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All use cases</SelectItem>
+                {Object.entries(filterOptions.useCases).map(([key, value]) => (
+                  <SelectItem key={key} value={key}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </div>
 
