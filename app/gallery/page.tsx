@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { motion } from "framer-motion"
 import { useSearchParams } from "next/navigation"
 import { useRugs, useFilterOptions } from "@/hooks/use-rugs"
@@ -10,7 +10,7 @@ import RugModal from "@/components/gallery/rug-modal"
 import { ProductGridSkeleton } from "@/components/ui/product-skeleton"
 import type { Rug } from "@/types"
 
-export default function GalleryPage() {
+function GalleryContent() {
   const searchParams = useSearchParams()
   const { items, loading, error, fetchProducts } = useRugs()
   const { filterOptions, filtersLoading } = useFilterOptions()
@@ -67,5 +67,13 @@ export default function GalleryPage() {
 
       {selectedRug && <RugModal rug={selectedRug} onClose={() => setSelectedRug(null)} />}
     </motion.div>
+  )
+}
+
+export default function GalleryPage() {
+  return (
+    <Suspense fallback={<ProductGridSkeleton count={12} />}>
+      <GalleryContent />
+    </Suspense>
   )
 }
