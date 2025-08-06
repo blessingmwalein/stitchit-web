@@ -95,7 +95,6 @@ export const registerAsync = createAsyncThunk(
         },
         body: JSON.stringify(userData),
       })
-
       const data = await response.json()
 
       if (!response.ok) {

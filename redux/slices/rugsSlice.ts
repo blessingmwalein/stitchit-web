@@ -14,8 +14,8 @@ export const fetchFinishedProducts = createAsyncThunk(
 // Async thunk for fetching grouped products
 export const fetchGroupedProducts = createAsyncThunk(
   "rugs/fetchGroupedProducts",
-  async (params?: { search?: string; size?: string; type?: string }) => {
-    const response = await apiService.getGroupedProducts(params);
+  async () => {
+    const response = await apiService.getGroupedProducts();
     return response;
   }
 );
