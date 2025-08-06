@@ -129,20 +129,22 @@ const rugsSlice = createSlice({
           state.items = action.payload.map(convertApiProductToRug);
         } else if (
           action.payload &&
-          action.payload.data &&
-          Array.isArray(action.payload.data)
+          typeof action.payload === 'object' &&
+          'data' in action.payload &&
+          Array.isArray((action.payload as any).data)
         ) {
           // Paginated response structure
-          state.apiProducts = action.payload.data;
-          state.items = action.payload.data.map(convertApiProductToRug);
+          state.apiProducts = (action.payload as any).data;
+          state.items = (action.payload as any).data.map(convertApiProductToRug);
         } else if (
           action.payload &&
-          action.payload.response &&
-          Array.isArray(action.payload.response)
+          typeof action.payload === 'object' &&
+          'response' in action.payload &&
+          Array.isArray((action.payload as any).response)
         ) {
           // API response wrapper structure
-          state.apiProducts = action.payload.response;
-          state.items = action.payload.response.map(convertApiProductToRug);
+          state.apiProducts = (action.payload as any).response;
+          state.items = (action.payload as any).response.map(convertApiProductToRug);
         } else {
           console.error("Unexpected payload structure:", action.payload);
           console.log("Payload type:", typeof action.payload);
@@ -175,10 +177,13 @@ const rugsSlice = createSlice({
               }
             });
             state.groupedProducts = groupedObj;
-          } else if (action.payload.response && Array.isArray(action.payload.response)) {
+          } else if (
+            'response' in action.payload &&
+            Array.isArray((action.payload as any).response)
+          ) {
             // Wrapped response - convert array to object
             const groupedObj: { [key: string]: any } = {};
-            action.payload.response.forEach((item: any) => {
+            (action.payload as any).response.forEach((item: any) => {
               if (item.use_case) {
                 groupedObj[item.use_case] = item;
               }
@@ -210,9 +215,9 @@ const rugsSlice = createSlice({
         
         // Handle different response structures
         if (action.payload && typeof action.payload === 'object') {
-          if (action.payload.response && typeof action.payload.response === 'object') {
+          if ('response' in action.payload && typeof (action.payload as any).response === 'object') {
             // Wrapped response
-            state.filterOptions = action.payload.response;
+            state.filterOptions = (action.payload as any).response;
           } else {
             // Direct object response
             state.filterOptions = action.payload;

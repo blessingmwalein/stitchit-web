@@ -33,12 +33,8 @@ export const useRugs = () => {
     dispatch(fetchFinishedProducts(params))
   }
 
-  const fetchGrouped = (params?: {
-    search?: string
-    size?: string
-    type?: string
-  }) => {
-    dispatch(fetchGroupedProducts(params))
+  const fetchGrouped = () => {
+    dispatch(fetchGroupedProducts())
   }
 
   const fetchFilters = () => {
@@ -108,16 +104,12 @@ export const useRecentRugs = () => {
   }
 }
 
-export const useGroupedRugs = (params?: {
-  search?: string
-  size?: string
-  type?: string
-}) => {
+export const useGroupedRugs = () => {
   const { fetchGrouped, groupedProducts, groupedLoading, groupedError } = useRugs()
 
   useEffect(() => {
-    fetchGrouped(params)
-  }, [params?.search, params?.size, params?.type])
+    fetchGrouped()
+  }, [])
 
   return {
     groupedProducts,
