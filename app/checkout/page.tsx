@@ -15,7 +15,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CreditCard, Smartphone, Building2, Check, Lock } from "lucide-react"
 import { useAppSelector, useAppDispatch } from "@/store/hooks"
 import { clearCart } from "@/store/slices/cartSlice"
-import { createOrder } from "@/store/slices/orderSlice"
 import { checkoutSchema } from "@/lib/validation"
 
 export default function CheckoutPage() {
@@ -60,22 +59,14 @@ export default function CheckoutPage() {
       // Simulate payment processing
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Create order
-      const order = {
-        id: `ORD-${Date.now()}`,
-        items,
-        total: grandTotal,
-        status: 'pending' as const,
-        createdAt: new Date().toISOString(),
-        customerInfo: billingInfo,
-        paymentStatus: 'paid' as const
-      };
+      // Create order (mock - not using backend)
+      const orderId = `ORD-${Date.now()}`;
 
-      dispatch(createOrder(order));
+      // Clear cart
       dispatch(clearCart());
 
       // Redirect to success page
-      router.push(`/order-success?orderId=${order.id}`);
+      router.push(`/order-success?orderId=${orderId}`);
     } catch (err: any) {
       const validationErrors: Record<string, string> = {};
       err.inner?.forEach((error: any) => {
@@ -95,10 +86,10 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-[#faf9f7]">
       <Header />
-      
+
       <main className="pt-24 pb-16">
         <div className="container mx-auto px-6 max-w-6xl">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -169,7 +160,7 @@ export default function CheckoutPage() {
                 {/* Payment Method */}
                 <Card className="p-6">
                   <h3 className="text-xl font-semibold mb-4">Payment Method</h3>
-                  
+
                   <Tabs value={paymentMethod} onValueChange={setPaymentMethod}>
                     <TabsList className="grid w-full grid-cols-3 mb-6">
                       <TabsTrigger value="card">
@@ -294,7 +285,7 @@ export default function CheckoutPage() {
               <div className="sticky top-24 space-y-4">
                 <Card className="p-6">
                   <h3 className="text-xl font-semibold mb-4">Order Summary</h3>
-                  
+
                   <div className="space-y-3 mb-4 max-h-64 overflow-y-auto">
                     {items.map((item) => (
                       <div key={item.id} className="flex gap-3">

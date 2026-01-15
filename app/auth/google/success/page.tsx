@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAppDispatch } from '@/store/hooks';
 import { setSession } from '@/store/slices/authSlice';
@@ -22,7 +22,7 @@ function safeParseClient(raw: string | null): Client | null {
   }
 }
 
-export default function GoogleSuccessPage() {
+function GoogleSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
@@ -76,5 +76,19 @@ export default function GoogleSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function GoogleSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#faf9f7] px-6">
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        </div>
+      </div>
+    }>
+      <GoogleSuccessContent />
+    </Suspense>
   );
 }

@@ -1,12 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-export default function GoogleErrorPage() {
+function GoogleErrorContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error') || 'Google authentication failed.';
   const message = searchParams.get('message');
@@ -32,5 +32,19 @@ export default function GoogleErrorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function GoogleErrorPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[#faf9f7] px-6">
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        </div>
+      </div>
+    }>
+      <GoogleErrorContent />
+    </Suspense>
   );
 }
