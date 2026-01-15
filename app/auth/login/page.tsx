@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { LogIn, Mail, Lock, ArrowLeft, Home } from "lucide-react"
+import { LogIn, Mail, Lock, ArrowLeft, Home, Loader2 } from "lucide-react"
 import { useAppDispatch } from "@/store/hooks"
 import { loginClient } from "@/store/slices/authSlice"
 import { loginSchema } from "@/lib/validation"
@@ -24,6 +24,7 @@ export default function LoginPage() {
   const dispatch = useAppDispatch();
 
   const [serverError, setServerError] = useState<string | null>(null);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const {
     register,
@@ -61,6 +62,7 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     setServerError(null);
+    setIsGoogleLoading(true);
     try {
       const res = await authApi.getGoogleRedirectUrl();
       window.location.href = res.data.url;
@@ -68,53 +70,54 @@ export default function LoginPage() {
       const message = err?.message || 'Failed to start Google login';
       setServerError(message);
       toast.error(message);
+      setIsGoogleLoading(false);
     }
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-[#faf9f7] via-[#f5f1ed] to-[#faf9f7] relative overflow-hidden flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-[#faf9f7] via-[#f5f1ed] to-[#faf9f7] relative overflow-hidden flex items-center justify-center py-8 px-4">
       {/* Decorative Shapes */}
       <div className="absolute top-20 -left-20 w-72 h-72 bg-[var(--orange)]/5 rounded-full blur-3xl" />
       <div className="absolute bottom-20 -right-20 w-96 h-96 bg-[var(--orange)]/10 rounded-full blur-3xl" />
       <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-[var(--orange)]/5 rounded-full blur-2xl" />
-      
+
       {/* Animated Watermark */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
-        className="absolute bottom-0 left-0 pointer-events-none select-none overflow-hidden"
+        className="absolute bottom-0 left-0 pointer-events-none select-none overflow-hidden hidden md:block"
       >
         <div className="text-[20vw] font-bold text-[var(--orange)]/[0.10] leading-none whitespace-nowrap rotate-[-15deg]">
           Stitch't
         </div>
       </motion.div>
-      
+
       {/* Pattern Background */}
       <div className="absolute inset-0 opacity-[0.02]" style={{
         backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 35px, var(--orange) 35px, var(--orange) 36px),
                          repeating-linear-gradient(-45deg, transparent, transparent 35px, var(--orange) 35px, var(--orange) 36px)`
       }} />
-      
+
       {/* Navigation Buttons */}
-      <div className="absolute top-6 left-6 flex gap-3 z-20">
+      <div className="absolute top-4 left-4 flex gap-2 z-20">
         <Button asChild variant="outline" className="rounded-full" size="sm">
           <Link href="/">
-            <Home className="w-4 h-4 mr-2" />
-            Home
+            <Home className="w-4 h-4 md:mr-2" />
+            <span className="hidden md:inline">Home</span>
           </Link>
         </Button>
         <Button asChild variant="outline" className="rounded-full" size="sm" onClick={() => router.back()}>
           <button>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+            <ArrowLeft className="w-4 h-4 md:mr-2" />
+            <span className="hidden md:inline">Back</span>
           </button>
         </Button>
       </div>
-      
-      <main className="w-full px-6 relative z-10">
-        <div className="container mx-auto px-6 max-w-5xl">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+
+      <main className="w-full relative z-10">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left Side - Branding */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
@@ -154,96 +157,114 @@ export default function LoginPage() {
             </motion.div>
 
             {/* Right Side - Form */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
+              className="w-full"
             >
-              <Card className="p-8 md:p-10 shadow-xl border-0 bg-white/80 backdrop-blur-sm">
-              <div className="text-center mb-8">
-                <div className="w-16 h-16 bg-[var(--orange)]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <LogIn className="w-8 h-8 text-[var(--orange)]" />
-                </div>
-                <h1 className="text-3xl font-light text-[#2c2420] mb-2">
-                  Welcome <span className="text-[var(--orange)] italic font-serif">Back</span>
-                </h1>
-                <p className="text-muted-foreground">Sign in to your account</p>
-              </div>
-
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                <div>
-                  <Label htmlFor="login" className="flex items-center gap-2 mb-3">
-                    <Mail className="w-4 h-4 text-[var(--orange)]" />
-                    Phone or Email
-                  </Label>
-                  <Input
-                    id="login"
-                    {...register('login')}
-                    placeholder="+263771234567 or john@example.com"
-                    className={`rounded-full h-12 px-4 ${errors.login ? "border-red-500" : ""}`}
-                  />
-                  {errors.login && <p className="text-red-500 text-sm mt-2">{errors.login.message}</p>}
+              <Card className="p-6 md:p-10 shadow-xl border-0 bg-white/80 backdrop-blur-sm w-full max-w-md mx-auto lg:max-w-none">
+                <div className="text-center mb-8">
+                  <div className="w-16 h-16 bg-[var(--orange)]/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <LogIn className="w-8 h-8 text-[var(--orange)]" />
+                  </div>
+                  <h1 className="text-2xl md:text-3xl font-light text-[#2c2420] mb-2">
+                    Welcome <span className="text-[var(--orange)] italic font-serif">Back</span>
+                  </h1>
+                  <p className="text-sm md:text-base text-muted-foreground">Sign in to your account</p>
                 </div>
 
-                <div>
-                  <Label htmlFor="password" className="flex items-center gap-2 mb-3">
-                    <Lock className="w-4 h-4 text-[var(--orange)]" />
-                    Password
-                  </Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    {...register('password')}
-                    placeholder="••••••••"
-                    className={`rounded-full h-12 px-4 ${errors.password ? "border-red-500" : ""}`}
-                  />
-                  {errors.password && <p className="text-red-500 text-sm mt-2">{errors.password.message}</p>}
-                </div>
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                  <div>
+                    <Label htmlFor="login" className="flex items-center gap-2 mb-3">
+                      <Mail className="w-4 h-4 text-[var(--orange)]" />
+                      Phone or Email
+                    </Label>
+                    <Input
+                      id="login"
+                      {...register('login')}
+                      placeholder="+263771234567 or john@example.com"
+                      className={`rounded-full h-12 px-4 ${errors.login ? "border-red-500" : ""}`}
+                    />
+                    {errors.login && <p className="text-red-500 text-sm mt-2">{errors.login.message}</p>}
+                  </div>
 
-                <div className="flex items-center justify-between text-sm">
-                  <label className="flex items-center gap-2">
-                    <input type="checkbox" className="rounded" />
-                    <span className="text-muted-foreground">Remember me</span>
-                  </label>
-                  <Link href="/auth/forgot-password" className="text-[var(--orange)] hover:underline">
-                    Forgot password?
-                  </Link>
-                </div>
+                  <div>
+                    <Label htmlFor="password" className="flex items-center gap-2 mb-3">
+                      <Lock className="w-4 h-4 text-[var(--orange)]" />
+                      Password
+                    </Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      {...register('password')}
+                      placeholder="••••••••"
+                      className={`rounded-full h-12 px-4 ${errors.password ? "border-red-500" : ""}`}
+                    />
+                    {errors.password && <p className="text-red-500 text-sm mt-2">{errors.password.message}</p>}
+                  </div>
 
-                {serverError && (
-                  <p className="text-red-600 text-sm text-center">{serverError}</p>
-                )}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm">
+                    <label className="flex items-center gap-2">
+                      <input type="checkbox" className="rounded" />
+                      <span className="text-muted-foreground">Remember me</span>
+                    </label>
+                    <Link href="/auth/forgot-password" className="text-[var(--orange)] hover:underline">
+                      Forgot password?
+                    </Link>
+                  </div>
+
+                  {serverError && (
+                    <p className="text-red-600 text-sm text-center">{serverError}</p>
+                  )}
+
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-[var(--orange)] hover:bg-[var(--orange-dark)] text-white rounded-full h-12"
+                    size="lg"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Signing in...
+                      </>
+                    ) : (
+                      "Sign In"
+                    )}
+                  </Button>
+                </form>
+
+                <Separator className="my-6" />
 
                 <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-[var(--orange)] hover:bg-[var(--orange-dark)] text-white rounded-full h-12"
-                  size="lg"
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  disabled={isGoogleLoading}
+                  variant="outline"
+                  className="w-full rounded-full h-12"
                 >
-                  {isSubmitting ? "Signing in..." : "Sign In"}
+                  {isGoogleLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Connecting...
+                    </>
+                  ) : (
+                    <>
+                      <FaGoogle className="mr-2 h-4 w-4" />
+                      Continue with Google
+                    </>
+                  )}
                 </Button>
-              </form>
 
-              <Separator className="my-6" />
-
-              <Button
-                type="button"
-                onClick={handleGoogleLogin}
-                variant="outline"
-                className="w-full rounded-full h-12"
-              >
-                <FaGoogle className="mr-2 h-4 w-4" />
-                Continue with Google
-              </Button>
-
-              <p className="text-center text-sm text-muted-foreground">
-                Don't have an account?{" "}
-                <Link href="/auth/signup" className="text-[var(--orange)] font-semibold hover:underline">
-                  Sign up
-                </Link>
-              </p>
-            </Card>
-          </motion.div>
+                <p className="text-center text-sm text-muted-foreground mt-6">
+                  Don't have an account?{" "}
+                  <Link href="/auth/signup" className="text-[var(--orange)] font-semibold hover:underline">
+                    Sign up
+                  </Link>
+                </p>
+              </Card>
+            </motion.div>
           </div>
         </div>
       </main>

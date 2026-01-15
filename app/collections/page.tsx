@@ -71,8 +71,24 @@ export default function CollectionsPage() {
   // Fix image URLs
   const fixImageUrl = (url: string) => {
     if (!url) return '/placeholder.png';
-    return url.replace(/\/storage\/(http:\/\/127\.0\.0\.1)?\/storage\//g, '/storage/')
-      .replace(/http:\/\/127\.0\.0\.1\/storage\//g, 'http://127.0.0.1/storage/');
+
+    // Handle malformed URLs like "/storage/https://admin.stitchit.co.zw/storage/..."
+    // Extract the full URL if it's embedded
+    const httpsMatch = url.match(/https:\/\/[^\s]+/);
+    if (httpsMatch) {
+      return httpsMatch[0];
+    }
+
+    // Handle relative paths that might have duplicate /storage/
+    const cleanUrl = url.replace(/^\/storage\//, '');
+
+    // If it's already a full URL, return it
+    if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
+      return cleanUrl;
+    }
+
+    // Otherwise, assume it's a relative path and prepend the storage URL
+    return `http://127.0.0.1/storage/${cleanUrl}`;
   };
 
   return (

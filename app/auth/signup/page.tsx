@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { UserPlus, Mail, Lock, User, Phone, ChevronRight, ChevronLeft, Check, ArrowLeft, Home } from "lucide-react"
+import { UserPlus, Mail, Lock, User, Phone, ChevronRight, ChevronLeft, Check, ArrowLeft, Home, Loader2 } from "lucide-react"
 import { useAppDispatch } from "@/store/hooks"
 import { registerClient } from "@/store/slices/authSlice"
 import { signupSchema } from "@/lib/validation"
@@ -26,6 +26,7 @@ export default function SignupPage() {
   const [step, setStep] = useState(1);
 
   const [serverError, setServerError] = useState<string | null>(null);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const {
     register,
@@ -99,6 +100,7 @@ export default function SignupPage() {
 
   const handleGoogleSignup = async () => {
     setServerError(null);
+    setIsGoogleLoading(true);
     try {
       const res = await authApi.getGoogleRedirectUrl();
       window.location.href = res.data.url;
@@ -106,53 +108,54 @@ export default function SignupPage() {
       const message = err?.message || 'Failed to start Google signup';
       setServerError(message);
       toast.error(message);
+      setIsGoogleLoading(false);
     }
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-[#faf9f7] via-[#f5f1ed] to-[#faf9f7] relative overflow-hidden flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-[#faf9f7] via-[#f5f1ed] to-[#faf9f7] relative overflow-hidden flex items-center justify-center py-8 px-4">
       {/* Decorative Shapes */}
       <div className="absolute top-20 -right-20 w-72 h-72 bg-[var(--orange)]/5 rounded-full blur-3xl" />
       <div className="absolute bottom-20 -left-20 w-96 h-96 bg-[var(--orange)]/10 rounded-full blur-3xl" />
       <div className="absolute top-1/3 right-1/4 w-40 h-40 bg-[var(--orange)]/5 rounded-full blur-2xl" />
-      
+
       {/* Animated Watermark */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
-        className="absolute bottom-0 left-0 pointer-events-none select-none overflow-hidden"
+        className="absolute bottom-0 left-0 pointer-events-none select-none overflow-hidden hidden md:block"
       >
         <div className="text-[20vw] font-bold text-[var(--orange)]/[0.10] leading-none whitespace-nowrap rotate-[-15deg]">
           Stitch't
         </div>
       </motion.div>
-      
+
       {/* Pattern Background */}
       <div className="absolute inset-0 opacity-[0.02]" style={{
         backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 35px, var(--orange) 35px, var(--orange) 36px),
                          repeating-linear-gradient(-45deg, transparent, transparent 35px, var(--orange) 35px, var(--orange) 36px)`
       }} />
-      
+
       {/* Navigation Buttons */}
-      <div className="absolute top-6 left-6 flex gap-3 z-20">
+      <div className="absolute top-4 left-4 flex gap-2 z-20">
         <Button asChild variant="outline" className="rounded-full" size="sm">
           <Link href="/">
-            <Home className="w-4 h-4 mr-2" />
-            Home
+            <Home className="w-4 h-4 md:mr-2" />
+            <span className="hidden md:inline">Home</span>
           </Link>
         </Button>
         <Button asChild variant="outline" className="rounded-full" size="sm" onClick={() => router.back()}>
           <button>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+            <ArrowLeft className="w-4 h-4 md:mr-2" />
+            <span className="hidden md:inline">Back</span>
           </button>
         </Button>
       </div>
-      
-      <main className="w-full px-6 relative z-10">
-        <div className="container mx-auto px-6 max-w-5xl">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+
+      <main className="w-full relative z-10">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             {/* Left Side - Branding */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
@@ -192,17 +195,18 @@ export default function SignupPage() {
             </motion.div>
 
             {/* Right Side - Form */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
+              className="w-full"
             >
-              <Card className="p-8 md:p-10 shadow-xl border-0 bg-white/80 backdrop-blur-sm">
+              <Card className="p-6 md:p-10 shadow-xl border-0 bg-white/80 backdrop-blur-sm w-full max-w-md mx-auto lg:max-w-none">
                 <div className="text-center mb-4">
                   {/* <div className="w-14 h-14 bg-[var(--orange)]/10 rounded-full flex items-center justify-center mx-auto mb-3">
                     <UserPlus className="w-7 h-7 text-[var(--orange)]" />
                   </div> */}
-                  <h1 className="text-2xl font-light text-[#2c2420] mb-1">
+                  <h1 className="text-xl md:text-2xl font-light text-[#2c2420] mb-1">
                     Create <span className="text-[var(--orange)] italic font-serif">Account</span>
                   </h1>
                   <p className="text-sm text-muted-foreground">Step {step} of 2</p>
@@ -337,7 +341,14 @@ export default function SignupPage() {
                           className="flex-1 bg-[var(--orange)] hover:bg-[var(--orange-dark)] text-white rounded-full h-12"
                           size="lg"
                         >
-                          {isSubmitting ? "Creating account..." : "Create Account"}
+                          {isSubmitting ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Creating account...
+                            </>
+                          ) : (
+                            "Create Account"
+                          )}
                         </Button>
                       </div>
                     </motion.div>
@@ -353,14 +364,24 @@ export default function SignupPage() {
                 <Button
                   type="button"
                   onClick={handleGoogleSignup}
+                  disabled={isGoogleLoading}
                   variant="outline"
                   className="w-full rounded-full h-12"
                 >
-                  <FaGoogle className="mr-2 h-4 w-4" />
-                  Continue with Google
+                  {isGoogleLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Connecting...
+                    </>
+                  ) : (
+                    <>
+                      <FaGoogle className="mr-2 h-4 w-4" />
+                      Continue with Google
+                    </>
+                  )}
                 </Button>
 
-                <p className="text-center text-sm text-muted-foreground">
+                <p className="text-center text-sm text-muted-foreground mt-6">
                   Already have an account?{" "}
                   <Link href="/auth/login" className="text-[var(--orange)] font-semibold hover:underline">
                     Sign in
