@@ -1,158 +1,147 @@
 import { apiRequest } from '@/lib/api/client';
+import { tokenStorage } from '@/lib/auth/tokenStorage';
 
-export type Gender = 'male' | 'female' | 'other';
+export type CustomerType = 'INDIVIDUAL' | 'CORPORATE';
 
-export type Client = {
-  id: number;
-  full_name: string;
-  phone: string;
+export type Customer = {
+  id: string;
+  customerNumber: string;
+  type: CustomerType;
+  firstName?: string | null;
+  lastName?: string | null;
+  companyName?: string | null;
   email?: string | null;
-  username?: string | null;
+  phone?: string | null;
   address?: string | null;
-  gender?: Gender | null;
-  nickname?: string | null;
-  avatar?: string | null;
+  city?: string | null;
+  country?: string | null;
+  avatarUrl?: string | null;
+  portalEnabled: boolean;
+  createdAt: string;
 };
 
-export type ApiEnvelope<T> = {
-  success: boolean;
-  message?: string;
-  data: T;
+// Backward-compatible alias
+export type Client = Customer;
+
+export type TokenPair = {
+  accessToken: string;
+  refreshToken: string;
 };
+
+export type AuthResponse = TokenPair & { customer: Customer };
 
 export type RegisterRequest = {
-  full_name: string;
-  phone: string;
-  email?: string;
-  username?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
   password: string;
-  password_confirmation: string;
-  address?: string;
-  gender?: Gender;
 };
-
-export type RegisterResponse = ApiEnvelope<{ client: Client; token: string }>;
 
 export type LoginRequest = {
-  login: string;
+  email: string;
   password: string;
 };
 
-export type LoginResponse = ApiEnvelope<{ client: Client; token: string }>;
-
-export type ProfileResponse = ApiEnvelope<Client>;
-
 export type UpdateProfileRequest = {
-  full_name?: string;
-  email?: string;
-  username?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
   address?: string;
-  gender?: Gender;
-  nickname?: string;
+  city?: string;
+  country?: string;
 };
 
-export type UpdateProfileResponse = ApiEnvelope<Client>;
-
-export type LogoutResponse = ApiEnvelope<unknown>;
-
-export type GoogleRedirectResponse = ApiEnvelope<{ url: string }>;
-
-export type GoogleExchangeSessionRequest = {
-  session: string;
+export type ChangePasswordRequest = {
+  currentPassword: string;
+  newPassword: string;
 };
 
-export type GoogleExchangeSessionLogin = {
-  type: 'login';
-  token: string;
-  client: Client;
-};
-
+// Legacy types kept for pages that used the Google flow (now unsupported via portal)
+export type GoogleRedirectResponse = { url: string };
+export type GoogleExchangeSessionRequest = { session: string };
+export type GoogleExchangeSessionLogin = { type: 'login'; token: string; client: Client };
 export type GoogleExchangeSessionRegister = {
-  type: 'register';
-  google_id: string;
-  email: string;
-  full_name: string;
-  avatar?: string | null;
+  type: 'register'; googleId: string; email: string; firstName: string; lastName: string; avatarUrl?: string | null;
 };
-
-export type GoogleExchangeSessionResponse = ApiEnvelope<GoogleExchangeSessionLogin | GoogleExchangeSessionRegister>;
-
+export type GoogleExchangeSessionResponse = GoogleExchangeSessionLogin | GoogleExchangeSessionRegister;
 export type GoogleCompleteRegistrationRequest = {
-  google_id: string;
-  email: string;
-  full_name: string;
-  phone: string;
-  username?: string;
-  address?: string;
-  gender?: Gender;
-  avatar?: string;
+  googleId: string; email: string; firstName: string; lastName: string; phone: string;
+  address?: string; avatarUrl?: string;
 };
-
-export type GoogleCompleteRegistrationResponse = ApiEnvelope<{ client: Client; token: string }>;
-
-// Backward-compatible aliases (used by existing pages/slices)
 export type CompleteGoogleRegistrationRequest = GoogleCompleteRegistrationRequest;
-export type CompleteGoogleRegistrationResponse = GoogleCompleteRegistrationResponse;
+export type GoogleCompleteRegistrationResponse = AuthResponse;
+export type CompleteGoogleRegistrationResponse = AuthResponse;
 
 export const authApi = {
-  register(payload: RegisterRequest) {
-    return apiRequest<RegisterResponse>('/auth/register', {
+  register(payload: RegisterRequest): Promise<AuthResponse> {
+    return apiRequest<AuthResponse>('/portal/auth/register', {
       method: 'POST',
       skipAuth: true,
       body: payload,
     });
   },
 
-  login(payload: LoginRequest) {
-    return apiRequest<LoginResponse>('/auth/login', {
+  login(payload: LoginRequest): Promise<AuthResponse> {
+    return apiRequest<AuthResponse>('/portal/auth/login', {
       method: 'POST',
       skipAuth: true,
       body: payload,
     });
   },
 
-  getProfile(token: string) {
-    return apiRequest<ProfileResponse>('/profile', {
-      method: 'GET',
-      token,
-    });
-  },
-
-  updateProfile(token: string, payload: UpdateProfileRequest) {
-    return apiRequest<UpdateProfileResponse>('/profile', {
-      method: 'PUT',
-      token,
-      body: payload,
-    });
-  },
-
-  logout(token: string) {
-    return apiRequest<LogoutResponse>('/logout', {
+  refresh(refreshToken: string): Promise<TokenPair> {
+    return apiRequest<TokenPair>('/portal/auth/refresh', {
       method: 'POST',
-      token,
-    });
-  },
-
-  getGoogleRedirectUrl() {
-    return apiRequest<GoogleRedirectResponse>('/auth/google/redirect', {
-      method: 'GET',
       skipAuth: true,
+      body: { refreshToken },
     });
   },
 
-  exchangeGoogleSession(payload: GoogleExchangeSessionRequest) {
+  getProfile(token: string): Promise<Customer> {
+    return apiRequest<Customer>('/portal/me', { method: 'GET', token });
+  },
+
+  updateProfile(payload: UpdateProfileRequest): Promise<Customer> {
+    return apiRequest<Customer>('/portal/me', { method: 'PATCH', body: payload });
+  },
+
+  changePassword(payload: ChangePasswordRequest): Promise<{ message: string }> {
+    return apiRequest<{ message: string }>('/portal/me/password', { method: 'PATCH', body: payload });
+  },
+
+  logout(refreshToken: string): Promise<{ message: string }> {
+    return apiRequest<{ message: string }>('/portal/auth/logout', {
+      method: 'POST',
+      skipAuth: true,
+      body: { refreshToken },
+    });
+  },
+
+  // Google OAuth is handled through redirect to /api/v1/auth/google
+  // The web redirects users there and receives tokens back via query params
+  getGoogleRedirectUrl(): Promise<GoogleRedirectResponse> {
+    return Promise.resolve({ url: `${process.env.NEXT_PUBLIC_API_BASE_URL || '/api/v1'}/auth/google` });
+  },
+
+  exchangeGoogleSession(_payload: GoogleExchangeSessionRequest): Promise<GoogleExchangeSessionResponse> {
     return apiRequest<GoogleExchangeSessionResponse>('/auth/google/exchange-session', {
       method: 'POST',
       skipAuth: true,
-      body: payload,
+      body: _payload,
     });
   },
 
-  completeGoogleRegistration(payload: CompleteGoogleRegistrationRequest) {
-    return apiRequest<CompleteGoogleRegistrationResponse>('/auth/google/complete-registration', {
+  completeGoogleRegistration(payload: GoogleCompleteRegistrationRequest): Promise<AuthResponse> {
+    return apiRequest<AuthResponse>('/auth/google/complete-registration', {
       method: 'POST',
       skipAuth: true,
       body: payload,
     });
   },
 };
+
+/** Call after a successful login/register to store both tokens */
+export function storeAuthTokens(pair: TokenPair) {
+  tokenStorage.setTokens(pair.accessToken, pair.refreshToken);
+}

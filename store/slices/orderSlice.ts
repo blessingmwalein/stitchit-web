@@ -48,8 +48,7 @@ export const fetchOrders = createAsyncThunk<
   { rejectValue: string }
 >('orders/fetchOrders', async (_, { rejectWithValue }) => {
   try {
-    const res = await orderApi.getOrders();
-    return res;
+    return await orderApi.getOrders();
   } catch (error) {
     if (isApiError(error)) return rejectWithValue(error.message);
     return rejectWithValue('Failed to fetch orders');
@@ -109,7 +108,7 @@ const orderSlice = createSlice({
     });
     builder.addCase(fetchOrders.fulfilled, (state, action) => {
       state.ordersList.loading = false;
-      state.ordersList.data = action.payload.data;
+      state.ordersList.data = (action.payload as OrderListResponse).data;
     });
     builder.addCase(fetchOrders.rejected, (state, action) => {
       state.ordersList.loading = false;

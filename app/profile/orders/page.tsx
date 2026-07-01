@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -24,7 +23,7 @@ export default function OrderHistoryPage() {
     const { ordersList } = useAppSelector((state) => state.orders);
     const dispatch = useAppDispatch();
 
-    const [expandedOrders, setExpandedOrders] = useState<Set<number>>(new Set());
+    const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set());
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -44,7 +43,7 @@ export default function OrderHistoryPage() {
         router.push('/');
     };
 
-    const toggleOrderExpand = (orderId: number) => {
+    const toggleOrderExpand = (orderId: string) => {
         setExpandedOrders(prev => {
             const newSet = new Set(prev);
             if (newSet.has(orderId)) {
@@ -100,7 +99,9 @@ export default function OrderHistoryPage() {
                                     <div className="w-20 h-20 bg-[var(--orange)]/10 rounded-full flex items-center justify-center mx-auto mb-3">
                                         <User className="w-10 h-10 text-[var(--orange)]" />
                                     </div>
-                                    <h3 className="font-semibold text-lg">{client.full_name}</h3>
+                                    <h3 className="font-semibold text-lg">
+                                        {[client.firstName, client.lastName].filter(Boolean).join(' ') || client.email || 'Account'}
+                                    </h3>
                                     <p className="text-sm text-muted-foreground">{client.email || ''}</p>
                                 </div>
 
@@ -178,8 +179,8 @@ export default function OrderHistoryPage() {
                                     <div className="space-y-4">
                                         {ordersList.data.map((order, index) => {
                                             const isExpanded = expandedOrders.has(order.id);
-                                            const totalAmount = Number(order.total_amount);
-                                            const paidAmount = order.paid_amount ? Number(order.paid_amount) : 0;
+                                            const totalAmount = Number(order.totalAmount ?? 0);
+                                            const paidAmount = order.depositAmount ? Number(order.depositAmount) : 0;
                                             const balance = order.balance ? Number(order.balance) : totalAmount - paidAmount;
 
                                             return (
@@ -196,15 +197,15 @@ export default function OrderHistoryPage() {
                                                                 <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6 flex-1">
                                                                     <div>
                                                                         <p className="text-xs text-muted-foreground uppercase font-medium">Order #</p>
-                                                                        <p className="text-sm font-semibold text-[var(--orange)]">{order.reference}</p>
+                                                                        <p className="text-sm font-semibold text-[var(--orange)]">{order.orderNumber}</p>
                                                                     </div>
                                                                     <div>
                                                                         <p className="text-xs text-muted-foreground uppercase font-medium">Date</p>
-                                                                        <p className="text-sm font-medium">{new Date(order.created_at).toLocaleDateString()}</p>
+                                                                        <p className="text-sm font-medium">{new Date(order.createdAt).toLocaleDateString()}</p>
                                                                     </div>
                                                                     <div>
                                                                         <p className="text-xs text-muted-foreground uppercase font-medium">Items</p>
-                                                                        <p className="text-sm font-medium">{order.items_count}</p>
+                                                                        <p className="text-sm font-medium">{order.items.length}</p>
                                                                     </div>
                                                                 </div>
                                                                 <div className="flex items-center gap-3">
@@ -219,8 +220,8 @@ export default function OrderHistoryPage() {
                                                                             </p>
                                                                         )}
                                                                     </div>
-                                                                    <Badge className={`${getStatusColor(order.state)}`}>
-                                                                        {order.state_label}
+                                                                    <Badge className={`${getStatusColor(order.status)}`}>
+                                                                        {order.status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}
                                                                     </Badge>
                                                                     <div className="flex gap-1">
                                                                         <Button
@@ -284,27 +285,16 @@ export default function OrderHistoryPage() {
                                                                         <div className="space-y-2">
                                                                             {order.items.map((item) => (
                                                                                 <div key={item.id} className="flex gap-3 p-2 bg-gray-50 rounded-lg">
-                                                                                    <div className="relative w-16 h-16 bg-gray-100 rounded overflow-hidden flex-shrink-0 border">
-                                                                                        {item.design_image_url ? (
-                                                                                            <Image
-                                                                                                src={item.design_image_url}
-                                                                                                alt="Design"
-                                                                                                fill
-                                                                                                className="object-cover"
-                                                                                            />
-                                                                                        ) : (
-                                                                                            <div className="w-full h-full flex items-center justify-center">
-                                                                                                <Package className="w-6 h-6 text-gray-300" />
-                                                                                            </div>
-                                                                                        )}
+                                                                                    <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center flex-shrink-0">
+                                                                                        <Package className="w-6 h-6 text-gray-300" />
                                                                                     </div>
                                                                                     <div className="flex-1 min-w-0">
-                                                                                        <p className="font-medium text-sm truncate">{item.description}</p>
+                                                                                        <p className="font-medium text-sm truncate">{item.rugName || 'Custom Rug'}</p>
                                                                                         <p className="text-xs text-muted-foreground">
-                                                                                            {Number(item.width).toFixed(0)}x{Number(item.height).toFixed(0)} cm • Qty: {item.quantity}
+                                                                                            {item.widthCm && item.heightCm ? `${item.widthCm}×${item.heightCm} cm · ` : ''}Qty: {item.quantity}
                                                                                         </p>
                                                                                         <p className="text-xs font-medium text-[var(--orange)]">
-                                                                                            ${Number(item.price_per_item).toFixed(2)}
+                                                                                            ${Number(item.unitPrice).toFixed(2)}
                                                                                         </p>
                                                                                     </div>
                                                                                 </div>
@@ -313,10 +303,10 @@ export default function OrderHistoryPage() {
                                                                     </div>
 
                                                                     {/* Delivery Address */}
-                                                                    {order.delivery_address && (
+                                                                    {order.deliveryAddress && (
                                                                         <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100">
                                                                             <p className="text-xs font-semibold text-gray-600 uppercase mb-1">Delivery To</p>
-                                                                            <p className="text-sm text-gray-700">{order.delivery_address}</p>
+                                                                            <p className="text-sm text-gray-700">{order.deliveryAddress}</p>
                                                                         </div>
                                                                     )}
                                                                 </div>

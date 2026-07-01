@@ -62,18 +62,12 @@ export default function GoogleRegisterPage() {
       // Handle potential nested "data" structure (e.g. { success: true, data: { ... } })
       const data = parsed.data || parsed;
 
-      const fullName = data.full_name || '';
-      // Split full_name into first and last
-      const nameParts = fullName.trim().split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
-
       setInitial({
-        google_id: data.google_id || '',
+        google_id: data.googleId || data.google_id || '',
         email: data.email || '',
-        first_name: firstName,
-        last_name: lastName,
-        avatar: data.avatar || undefined,
+        first_name: data.firstName || data.first_name || '',
+        last_name: data.lastName || data.last_name || '',
+        avatar: data.avatarUrl || data.avatar || undefined,
       });
     } catch {
       sessionStorage.removeItem(REG_DATA_KEY);
@@ -131,19 +125,15 @@ export default function GoogleRegisterPage() {
   const onSubmit = async (values: FormValues) => {
     setServerError(null);
     try {
-      // Combine first and last name back to full_name for the backend
-      const full_name = `${values.first_name} ${values.last_name}`.trim();
-
       await dispatch(
         completeGoogleRegistration({
-          google_id: values.google_id,
+          googleId: values.google_id,
           email: values.email,
-          full_name,
-          avatar: values.avatar || undefined,
+          firstName: values.first_name,
+          lastName: values.last_name,
+          avatarUrl: values.avatar || undefined,
           phone: values.phone,
-          username: values.username || undefined,
           address: values.address || undefined,
-          gender: values.gender || undefined,
         })
       ).unwrap();
 

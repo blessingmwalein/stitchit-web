@@ -66,13 +66,16 @@ export default function SignupPage() {
   }) => {
     setServerError(null);
     try {
+      const nameParts = (values.full_name || '').trim().split(/\s+/);
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
       await dispatch(
         registerClient({
-          full_name: values.full_name,
-          phone: values.phone,
-          email: values.email || undefined,
+          firstName,
+          lastName,
+          email: values.email || '',
+          phone: values.phone || undefined,
           password: values.password,
-          password_confirmation: values.password_confirmation,
         })
       ).unwrap();
 
@@ -85,7 +88,7 @@ export default function SignupPage() {
           const message = Array.isArray(messages) ? messages[0] : undefined;
           if (!message) return;
 
-          if (field === 'full_name') setError('full_name', { type: 'server', message });
+          if (field === 'firstName' || field === 'lastName') setError('full_name', { type: 'server', message });
           if (field === 'email') setError('email', { type: 'server', message });
           if (field === 'phone') setError('phone', { type: 'server', message });
           if (field === 'password') setError('password', { type: 'server', message });
@@ -103,7 +106,7 @@ export default function SignupPage() {
     setIsGoogleLoading(true);
     try {
       const res = await authApi.getGoogleRedirectUrl();
-      window.location.href = res.data.url;
+      window.location.href = res.url;
     } catch (err: any) {
       const message = err?.message || 'Failed to start Google signup';
       setServerError(message);

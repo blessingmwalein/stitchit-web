@@ -39,7 +39,7 @@ export function Header() {
         {/* Desktop Navigation */}
         <nav className="hidden lg:flex items-center gap-8">
           <Link href="/collections" className="text-sm text-[#5a4a42] hover:text-[var(--orange)] transition-colors">
-            Collections
+            Gallery
           </Link>
           <Link href="/use-cases" className="text-sm text-[#5a4a42] hover:text-[var(--orange)] transition-colors">
             Use Cases
@@ -71,7 +71,7 @@ export function Header() {
           {isAuthenticated ? (
             <>
               <Button asChild variant="outline" className="rounded-full">
-                <Link href="/profile">{client?.full_name || 'Profile'}</Link>
+                <Link href="/profile">{[client?.firstName, client?.lastName].filter(Boolean).join(' ') || 'Profile'}</Link>
               </Button>
               <Button onClick={handleLogout} variant="outline" className="rounded-full">
                 Logout
@@ -115,7 +115,7 @@ export function Header() {
                 className="block py-3 px-4 text-[#5a4a42] hover:bg-[var(--orange)]/10 hover:text-[var(--orange)] rounded-lg transition-colors"
                 onClick={closeMobileMenu}
               >
-                Collections
+                Gallery
               </Link>
               <Link
                 href="/use-cases"
@@ -175,7 +175,7 @@ export function Header() {
                     onClick={closeMobileMenu}
                   >
                     <User className="w-4 h-4" />
-                    {client?.full_name || 'Profile'}
+                    {[client?.firstName, client?.lastName].filter(Boolean).join(' ') || 'Profile'}
                   </Link>
                   <button
                     onClick={handleLogout}

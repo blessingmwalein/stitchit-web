@@ -85,7 +85,9 @@ export default function ProfilePage() {
                   <div className="w-20 h-20 bg-[var(--orange)]/10 rounded-full flex items-center justify-center mx-auto mb-3">
                     <User className="w-10 h-10 text-[var(--orange)]" />
                   </div>
-                  <h3 className="font-semibold text-lg">{client.full_name}</h3>
+                  <h3 className="font-semibold text-lg">
+                    {[client.firstName, client.lastName].filter(Boolean).join(' ') || client.email || 'My Account'}
+                  </h3>
                   <p className="text-sm text-muted-foreground">{client.email || ''}</p>
                 </div>
 
@@ -152,14 +154,27 @@ export default function ProfilePage() {
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="name" className="flex items-center gap-2">
+                      <Label htmlFor="firstName" className="flex items-center gap-2">
                         <User className="w-4 h-4 text-[var(--orange)]" />
-                        Full Name
+                        First Name
                       </Label>
                       <Input
-                        id="name"
-                        value={editedUser?.full_name || ""}
-                        onChange={(e) => setEditedUser(editedUser ? { ...editedUser, full_name: e.target.value } : null)}
+                        id="firstName"
+                        value={editedUser?.firstName || ''}
+                        onChange={(e) => setEditedUser(editedUser ? { ...editedUser, firstName: e.target.value } : null)}
+                        disabled={!isEditing}
+                      />
+                    </div>
+
+                    <div>
+                      <Label htmlFor="lastName" className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-[var(--orange)]" />
+                        Last Name
+                      </Label>
+                      <Input
+                        id="lastName"
+                        value={editedUser?.lastName || ''}
+                        onChange={(e) => setEditedUser(editedUser ? { ...editedUser, lastName: e.target.value } : null)}
                         disabled={!isEditing}
                       />
                     </div>

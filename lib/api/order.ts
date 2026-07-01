@@ -1,84 +1,111 @@
 import { apiRequest } from './client';
 
+// ── Pricing ──────────────────────────────────────────────────────────────────
+
+export type ComplexityLevel = 'SIMPLE' | 'MEDIUM' | 'COMPLEX' | 'VERY_COMPLEX';
+export type ShapeType = 'RECTANGLE' | 'RUNNER' | 'ROUND' | 'OVAL' | 'IRREGULAR' | 'CUSTOM';
+
 export interface PricingRequest {
-    width_cm: number;
-    height_cm: number;
+  widthCm: number;
+  heightCm: number;
+  complexity?: ComplexityLevel;
+  shape?: ShapeType;
+  isRush?: boolean;
 }
 
+// Normalized shape for backward-compat with orderSlice
 export interface PricingResponse {
-    success: boolean;
-    data: {
-        dimensions: {
-            width_cm: number;
-            height_cm: number;
-            area_sqcm: number;
-        };
-        pricing: {
-            production_cost: number;
-            profit_margin_percentage: string | null;
-            profit_amount: number;
-            final_price: number;
-            currency: string;
-        };
-    };
+  data: {
+    dimensions: { widthCm: number; heightCm: number; areaSqCm: number };
+    pricing: { finalPrice: number; basePrice: number; currency: string };
+  };
 }
 
-export const orderApi = {
-    calculateRugPrice: (data: PricingRequest) => {
-        return apiRequest<PricingResponse>('rug-pricing/calculate', {
-            method: 'POST',
-            body: data,
-        });
-    },
+// Raw shape from NestJS
+interface NestPricingResult {
+  widthCm: number;
+  heightCm: number;
+  areaSqCm: number;
+  basePrice: number;
+  finalPrice: number;
+  currency: string;
+}
 
-    createOrder: (formData: FormData) => {
-        return apiRequest<any>('orders', {
-            method: 'POST',
-            body: formData,
-        });
-    },
-
-    getOrders: () => {
-        return apiRequest<OrderListResponse>('orders', {
-            method: 'GET',
-        });
-    },
-};
+// ── Orders ────────────────────────────────────────────────────────────────────
 
 export interface OrderItem {
-    id: number;
-    description: string;
-    width: string;
-    height: string;
-    quantity: number;
-    price_per_item: string;
-    total_price: number;
-    design_image_url: string | null;
+  id: string;
+  rugName?: string | null;
+  widthCm?: number | null;
+  heightCm?: number | null;
+  quantity: number;
+  unitPrice: string;
+  lineTotal: number;
+  designFileId?: string | null;
 }
 
 export interface Order {
-    id: number;
-    reference: string;
-    state: string;
-    state_label: string;
-    total_amount: string;
-    paid_amount: string | null;
-    balance: string | null;
-    items_count: number;
-    delivery_address: string;
-    delivery_date: string | null;
-    notes: string | null;
-    created_at: string;
-    items: OrderItem[];
+  id: string;
+  orderNumber: string;
+  status: string;
+  totalAmount: string;
+  depositAmount?: string | null;
+  balance?: string | null;
+  deliveryAddress?: string | null;
+  requiredDate?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  items: OrderItem[];
 }
 
 export interface OrderListResponse {
-    success: boolean;
-    data: Order[];
-    pagination: {
-        current_page: number;
-        last_page: number;
-        per_page: number;
-        total: number;
-    };
+  data: Order[];
+  total: number;
+  page: number;
+  limit: number;
 }
+
+// ── API object ────────────────────────────────────────────────────────────────
+
+export const orderApi = {
+  calculateRugPrice(data: PricingRequest): Promise<PricingResponse> {
+    const params = new URLSearchParams({
+      widthCm: String(data.widthCm),
+      heightCm: String(data.heightCm),
+      ...(data.complexity ? { complexity: data.complexity } : {}),
+      ...(data.shape ? { shape: data.shape } : {}),
+      ...(data.isRush ? { isRush: 'true' } : {}),
+    });
+    return apiRequest<NestPricingResult>(`/public/pricing/estimate?${params}`, {
+      method: 'GET',
+      skipAuth: true,
+    }).then((raw): PricingResponse => ({
+      data: {
+        dimensions: { widthCm: raw.widthCm, heightCm: raw.heightCm, areaSqCm: raw.areaSqCm },
+        pricing: { finalPrice: raw.finalPrice, basePrice: raw.basePrice, currency: raw.currency },
+      },
+    }));
+  },
+
+  // For authenticated portal customers — creates an order from FormData
+  createOrder(formData: FormData): Promise<any> {
+    return apiRequest<any>('/portal/orders', { method: 'POST', body: formData });
+  },
+
+  // For unauthenticated visitors — submits a quick-order as a lead
+  submitPublicEnquiry(formData: FormData): Promise<{ message: string }> {
+    return apiRequest<{ message: string }>('/public/leads', {
+      method: 'POST',
+      skipAuth: true,
+      body: formData,
+    });
+  },
+
+  getOrders(page = 1): Promise<OrderListResponse> {
+    return apiRequest<OrderListResponse>(`/portal/orders?page=${page}`, { method: 'GET' });
+  },
+
+  getOrder(id: string): Promise<Order> {
+    return apiRequest<Order>(`/portal/orders/${id}`, { method: 'GET' });
+  },
+};

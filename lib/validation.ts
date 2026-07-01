@@ -24,9 +24,10 @@ export const orderSchema = yup.object().shape({
 });
 
 export const loginSchema = yup.object().shape({
-  login: yup
+  email: yup
     .string()
-    .required('Phone or email is required'),
+    .required('Email address is required')
+    .email('Enter a valid email address'),
   password: yup
     .string()
     .required('Password is required')

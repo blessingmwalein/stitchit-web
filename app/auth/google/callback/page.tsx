@@ -33,8 +33,7 @@ function GoogleCallbackContent() {
 
     (async () => {
       try {
-        const res = await authApi.exchangeGoogleSession({ session: sessionKey });
-        const data = res.data;
+        const data = await authApi.exchangeGoogleSession({ session: sessionKey });
 
         if (data.type === 'login') {
           dispatch(setSession({ token: data.token, client: data.client }));

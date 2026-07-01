@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { authApi, type Client, type CompleteGoogleRegistrationRequest, type RegisterRequest } from '@/lib/api/auth';
+import { authApi, storeAuthTokens, type Customer, type Client, type RegisterRequest, type CompleteGoogleRegistrationRequest } from '@/lib/api/auth';
 import type { FieldErrors } from '@/lib/api/client';
 import { isApiError } from '@/lib/api/client';
 import { tokenStorage } from '@/lib/auth/tokenStorage';
@@ -36,7 +36,8 @@ export const registerClient = createAsyncThunk<
 >('auth/registerClient', async (payload, { rejectWithValue }) => {
   try {
     const res = await authApi.register(payload);
-    return { client: res.data.client, token: res.data.token };
+    storeAuthTokens(res);
+    return { client: res.customer, token: res.accessToken };
   } catch (error) {
     if (isApiError(error)) return rejectWithValue({ message: error.message, errors: error.errors });
     return rejectWithValue({ message: 'Registration failed' });
@@ -45,12 +46,13 @@ export const registerClient = createAsyncThunk<
 
 export const loginClient = createAsyncThunk<
   { client: Client; token: string },
-  { login: string; password: string },
+  { email: string; password: string },
   { rejectValue: RejectedValue }
 >('auth/loginClient', async (payload, { rejectWithValue }) => {
   try {
     const res = await authApi.login(payload);
-    return { client: res.data.client, token: res.data.token };
+    storeAuthTokens(res);
+    return { client: res.customer, token: res.accessToken };
   } catch (error) {
     if (isApiError(error)) return rejectWithValue({ message: error.message, errors: error.errors });
     return rejectWithValue({ message: 'Login failed' });
@@ -58,7 +60,7 @@ export const loginClient = createAsyncThunk<
 });
 
 export const fetchProfile = createAsyncThunk<
-  Client,
+  Customer,
   void,
   { state: { auth: AuthState }; rejectValue: RejectedValue }
 >('auth/fetchProfile', async (_unused, { getState, rejectWithValue }) => {
@@ -66,8 +68,7 @@ export const fetchProfile = createAsyncThunk<
   if (!token) return rejectWithValue({ message: 'Not authenticated' });
 
   try {
-    const res = await authApi.getProfile(token);
-    return res.data;
+    return await authApi.getProfile(token);
   } catch (error) {
     if (isApiError(error)) return rejectWithValue({ message: error.message, errors: error.errors });
     return rejectWithValue({ message: 'Failed to load profile' });
@@ -83,10 +84,10 @@ export const hydrateAuth = createAsyncThunk<
   if (!token) return rejectWithValue({ message: 'No token' });
 
   try {
-    const res = await authApi.getProfile(token);
-    return { token, client: res.data };
+    const client = await authApi.getProfile(token);
+    return { token, client };
   } catch (error) {
-    tokenStorage.clearToken();
+    tokenStorage.clearAll();
     if (isApiError(error)) return rejectWithValue({ message: error.message, errors: error.errors });
     return rejectWithValue({ message: 'Session expired' });
   }
@@ -95,11 +96,11 @@ export const hydrateAuth = createAsyncThunk<
 export const logoutClient = createAsyncThunk<void, void, { state: { auth: AuthState } }>(
   'auth/logoutClient',
   async (_unused, { getState }) => {
-    const token = getState().auth.token;
     try {
-      if (token) await authApi.logout(token);
+      const refreshToken = tokenStorage.getRefreshToken();
+      if (refreshToken) await authApi.logout(refreshToken);
     } finally {
-      tokenStorage.clearToken();
+      tokenStorage.clearAll();
     }
   }
 );
@@ -111,7 +112,8 @@ export const completeGoogleRegistration = createAsyncThunk<
 >('auth/completeGoogleRegistration', async (payload, { rejectWithValue }) => {
   try {
     const res = await authApi.completeGoogleRegistration(payload);
-    return { client: res.data.client, token: res.data.token };
+    storeAuthTokens(res);
+    return { client: res.customer, token: res.accessToken };
   } catch (error) {
     if (isApiError(error)) return rejectWithValue({ message: error.message, errors: error.errors });
     return rejectWithValue({ message: 'Registration failed' });
@@ -122,7 +124,6 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    // Backward-compatible: some pages still call these.
     setUser: (state, action: PayloadAction<any>) => {
       state.client = action.payload as Client;
       state.isAuthenticated = true;
@@ -133,7 +134,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
       state.fieldErrors = null;
-      tokenStorage.clearToken();
+      tokenStorage.clearAll();
     },
     updateUser: (state, action: PayloadAction<Partial<Client>>) => {
       if (state.client) state.client = { ...state.client, ...action.payload };
@@ -155,16 +156,13 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(registerClient.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-        state.fieldErrors = null;
+        state.loading = true; state.error = null; state.fieldErrors = null;
       })
       .addCase(registerClient.fulfilled, (state, action) => {
         state.loading = false;
         state.client = action.payload.client;
         state.token = action.payload.token;
         state.isAuthenticated = true;
-        tokenStorage.setToken(action.payload.token);
       })
       .addCase(registerClient.rejected, (state, action) => {
         state.loading = false;
@@ -172,16 +170,13 @@ const authSlice = createSlice({
         state.fieldErrors = action.payload?.errors || null;
       })
       .addCase(loginClient.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-        state.fieldErrors = null;
+        state.loading = true; state.error = null; state.fieldErrors = null;
       })
       .addCase(loginClient.fulfilled, (state, action) => {
         state.loading = false;
         state.client = action.payload.client;
         state.token = action.payload.token;
         state.isAuthenticated = true;
-        tokenStorage.setToken(action.payload.token);
       })
       .addCase(loginClient.rejected, (state, action) => {
         state.loading = false;
@@ -189,9 +184,7 @@ const authSlice = createSlice({
         state.fieldErrors = action.payload?.errors || null;
       })
       .addCase(fetchProfile.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-        state.fieldErrors = null;
+        state.loading = true; state.error = null; state.fieldErrors = null;
       })
       .addCase(fetchProfile.fulfilled, (state, action) => {
         state.loading = false;
@@ -204,9 +197,7 @@ const authSlice = createSlice({
         state.fieldErrors = action.payload?.errors || null;
       })
       .addCase(hydrateAuth.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-        state.fieldErrors = null;
+        state.loading = true; state.error = null; state.fieldErrors = null;
       })
       .addCase(hydrateAuth.fulfilled, (state, action) => {
         state.loading = false;
@@ -230,16 +221,13 @@ const authSlice = createSlice({
         state.fieldErrors = null;
       })
       .addCase(completeGoogleRegistration.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-        state.fieldErrors = null;
+        state.loading = true; state.error = null; state.fieldErrors = null;
       })
       .addCase(completeGoogleRegistration.fulfilled, (state, action) => {
         state.loading = false;
         state.client = action.payload.client;
         state.token = action.payload.token;
         state.isAuthenticated = true;
-        tokenStorage.setToken(action.payload.token);
       })
       .addCase(completeGoogleRegistration.rejected, (state, action) => {
         state.loading = false;

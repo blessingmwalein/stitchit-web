@@ -15,14 +15,31 @@ function joinUrl(baseUrl: string, endpoint: string) {
 }
 
 function getApiBaseUrl() {
-  return process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1/api/client';
+  return process.env.NEXT_PUBLIC_API_BASE_URL || '/api/v1';
 }
 
 export type RequestOptions = Omit<RequestInit, 'body'> & {
   body?: unknown;
   skipAuth?: boolean;
   token?: string | null;
+  _isRefreshRetry?: boolean;
 };
+
+let _refreshPromise: Promise<{ accessToken: string; refreshToken: string }> | null = null;
+
+async function doRefresh(): Promise<{ accessToken: string; refreshToken: string }> {
+  const refreshToken = tokenStorage.getRefreshToken();
+  if (!refreshToken) throw new Error('No refresh token');
+
+  const url = joinUrl(getApiBaseUrl(), '/portal/auth/refresh');
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ refreshToken }),
+  });
+  if (!res.ok) throw new Error('Refresh failed');
+  return res.json();
+}
 
 export async function apiRequest<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const url = joinUrl(getApiBaseUrl(), endpoint);
@@ -34,7 +51,6 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
   }
 
   if (!options.skipAuth) {
-    // Use provided token or retrieve from storage
     const token = options.token !== undefined ? options.token : tokenStorage.getToken();
     if (token) headers.set('Authorization', `Bearer ${token}`);
   }
@@ -43,15 +59,10 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
     ? options.body
     : (options.body === undefined ? undefined : JSON.stringify(options.body));
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-    body,
-  });
+  const response = await fetch(url, { ...options, headers, body });
 
   const contentType = response.headers.get('content-type') || '';
   const isJson = contentType.includes('application/json');
-
   const payload = isJson ? await response.json().catch(() => null) : await response.text().catch(() => null);
 
   if (!response.ok) {
@@ -61,11 +72,27 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
         : response.statusText || 'Request failed';
 
     const errors =
-      typeof payload === 'object' && payload && 'errors' in payload && typeof (payload as any).errors === 'object'
+      typeof payload === 'object' && payload && 'errors' in payload
         ? ((payload as any).errors as FieldErrors)
         : undefined;
 
     const err: ApiError = { status: response.status, message, errors };
+
+    // Silent 401 refresh — only once, never on the refresh call itself
+    if (response.status === 401 && !options.skipAuth && !options._isRefreshRetry) {
+      try {
+        if (!_refreshPromise) {
+          _refreshPromise = doRefresh().finally(() => { _refreshPromise = null; });
+        }
+        const pair = await _refreshPromise;
+        tokenStorage.setTokens(pair.accessToken, pair.refreshToken);
+        return apiRequest<T>(endpoint, { ...options, token: pair.accessToken, _isRefreshRetry: true });
+      } catch {
+        tokenStorage.clearAll();
+        throw err;
+      }
+    }
+
     throw err;
   }
 

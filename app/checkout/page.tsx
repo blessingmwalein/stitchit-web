@@ -28,7 +28,7 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [billingInfo, setBillingInfo] = useState({
-    name: client?.full_name || "",
+    name: [client?.firstName, client?.lastName].filter(Boolean).join(' ') || "",
     email: client?.email || "",
     phone: client?.phone || "",
     address: client?.address || "",

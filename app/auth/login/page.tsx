@@ -31,26 +31,26 @@ export default function LoginPage() {
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<{ login: string; password: string }>({
+  } = useForm<{ email: string; password: string }>({
     resolver: yupResolver(loginSchema),
     defaultValues: {
-      login: "",
-      password: "",
+      email: '',
+      password: '',
     },
   });
 
-  const onSubmit = async (values: { login: string; password: string }) => {
+  const onSubmit = async (values: { email: string; password: string }) => {
     setServerError(null);
     try {
       await dispatch(loginClient(values)).unwrap();
-      toast.success("Login successful")
+      toast.success('Login successful');
       router.push('/profile');
     } catch (err: any) {
       if (err?.errors && typeof err.errors === 'object') {
         Object.entries(err.errors as Record<string, string[]>).forEach(([field, messages]) => {
           const message = Array.isArray(messages) ? messages[0] : undefined;
           if (!message) return;
-          if (field === 'login') setError('login', { type: 'server', message });
+          if (field === 'email') setError('email', { type: 'server', message });
           if (field === 'password') setError('password', { type: 'server', message });
         });
       }
@@ -65,7 +65,7 @@ export default function LoginPage() {
     setIsGoogleLoading(true);
     try {
       const res = await authApi.getGoogleRedirectUrl();
-      window.location.href = res.data.url;
+      window.location.href = res.url;
     } catch (err: any) {
       const message = err?.message || 'Failed to start Google login';
       setServerError(message);
@@ -176,17 +176,17 @@ export default function LoginPage() {
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                   <div>
-                    <Label htmlFor="login" className="flex items-center gap-2 mb-3">
+                    <Label htmlFor="email" className="flex items-center gap-2 mb-3">
                       <Mail className="w-4 h-4 text-[var(--orange)]" />
                       Phone or Email
                     </Label>
                     <Input
-                      id="login"
-                      {...register('login')}
-                      placeholder="+263771234567 or john@example.com"
-                      className={`rounded-full h-12 px-4 ${errors.login ? "border-red-500" : ""}`}
+                      id="email"
+                      {...register('email')}
+                      placeholder="you@example.com"
+                      className={`rounded-full h-12 px-4 ${errors.email ? "border-red-500" : ""}`}
                     />
-                    {errors.login && <p className="text-red-500 text-sm mt-2">{errors.login.message}</p>}
+                    {errors.email && <p className="text-red-500 text-sm mt-2">{errors.email.message}</p>}
                   </div>
 
                   <div>
