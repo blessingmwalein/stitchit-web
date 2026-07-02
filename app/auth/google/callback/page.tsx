@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
-import { authApi } from '@/lib/api/auth';
+import { authApi, storeAuthTokens } from '@/lib/api/auth';
 import { useAppDispatch } from '@/store/hooks';
 import { setSession } from '@/store/slices/authSlice';
 import { toast } from 'sonner';
@@ -36,7 +36,8 @@ function GoogleCallbackContent() {
         const data = await authApi.exchangeGoogleSession({ session: sessionKey });
 
         if (data.type === 'login') {
-          dispatch(setSession({ token: data.token, client: data.client }));
+          storeAuthTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken });
+          dispatch(setSession({ token: data.accessToken, client: data.customer }));
           toast.success('Logged in with Google');
           router.replace('/profile');
           return;

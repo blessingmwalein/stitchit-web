@@ -57,10 +57,14 @@ export type ChangePasswordRequest = {
   newPassword: string;
 };
 
-// Legacy types kept for pages that used the Google flow (now unsupported via portal)
 export type GoogleRedirectResponse = { url: string };
 export type GoogleExchangeSessionRequest = { session: string };
-export type GoogleExchangeSessionLogin = { type: 'login'; token: string; client: Client };
+export type GoogleExchangeSessionLogin = {
+  type: 'login';
+  accessToken: string;
+  refreshToken: string;
+  customer: Client;
+};
 export type GoogleExchangeSessionRegister = {
   type: 'register'; googleId: string; email: string; firstName: string; lastName: string; avatarUrl?: string | null;
 };
