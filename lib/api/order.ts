@@ -92,12 +92,19 @@ export const orderApi = {
     return apiRequest<any>('/portal/orders', { method: 'POST', body: formData });
   },
 
-  // For unauthenticated visitors — submits a quick-order as a lead
-  submitPublicEnquiry(formData: FormData): Promise<{ message: string }> {
+  // For unauthenticated visitors — submits a quick-order as a lead (JSON body)
+  submitPublicEnquiry(payload: {
+    name: string;
+    email?: string;
+    phone?: string;
+    whatsappNumber?: string;
+    source?: string;
+    message?: string;
+  }): Promise<{ message: string }> {
     return apiRequest<{ message: string }>('/public/leads', {
       method: 'POST',
       skipAuth: true,
-      body: formData,
+      body: payload,
     });
   },
 

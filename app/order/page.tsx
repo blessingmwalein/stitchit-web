@@ -265,10 +265,17 @@ function OrderWizardInner() {
   const onSubmit = async (data: FormValues) => {
     setSubmitting(true);
     try {
-      const formData = new FormData();
-      formData.append('name', data.clientName);
-      if (data.clientEmail) formData.append('email', data.clientEmail);
-      formData.append('whatsappNumber', data.clientPhone);
+      // Upload design file to Supabase via server route, then include URL in message
+      let designUrl: string | null = null;
+      if (designFile) {
+        const uploadForm = new FormData();
+        uploadForm.append('file', designFile);
+        const res = await fetch('/api/upload-design', { method: 'POST', body: uploadForm });
+        if (res.ok) {
+          const json = await res.json();
+          designUrl = json.url ?? null;
+        }
+      }
 
       const shapeLabel = SHAPES.find((s) => s.value === data.shape)?.label ?? data.shape;
       const complexLabel = COMPLEXITIES.find((c) => c.value === data.complexity)?.label ?? data.complexity;
@@ -284,13 +291,16 @@ function OrderWizardInner() {
         price ? `Price estimate: $${Math.round(price * data.quantity).toLocaleString()}` : null,
         data.notes ? `Special requests: ${data.notes}` : null,
         data.deliveryAddress ? `Delivery address: ${data.deliveryAddress}` : null,
+        designUrl ? `Design file: ${designUrl}` : null,
       ].filter(Boolean);
 
-      formData.append('notes', lines.join('\n'));
-      formData.append('source', 'WEBSITE');
-      if (designFile) formData.append('designFile', designFile);
-
-      await orderApi.submitPublicEnquiry(formData);
+      await orderApi.submitPublicEnquiry({
+        name: data.clientName,
+        ...(data.clientEmail && { email: data.clientEmail }),
+        whatsappNumber: data.clientPhone,
+        source: 'WEBSITE',
+        message: lines.join('\n'),
+      });
       toast.success("Order request submitted! We'll reach out on WhatsApp within 24 hours.");
       router.push('/');
     } catch {
