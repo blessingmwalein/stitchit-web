@@ -1,61 +1,46 @@
 'use client';
 
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import { motion } from "framer-motion"
-import { Sofa, Utensils, Bath, Bed, Car, TableProperties, Lamp, DoorOpen } from "lucide-react"
+import {
+  Sofa, Utensils, Bath, Bed, Car, TableProperties, Lamp, DoorOpen,
+  Building2, Sparkles, type LucideIcon,
+} from "lucide-react"
+import { roomShowcaseApi, type RoomShowcaseItem } from "@/lib/api/room-showcase"
 
-const useCases = [
-  {
-    icon: Sofa,
-    title: "Living Rooms",
-    description: "Transform your living space with statement rugs",
-    image: "https://images.unsplash.com/photo-1600166898405-da9535204843?w=600&q=80"
-  },
-  {
-    icon: TableProperties,
-    title: "Dining Areas",
-    description: "Elegant rugs under dining tables for sophisticated meals",
-    image: "https://images.unsplash.com/photo-1615874959474-d609969a20ed?w=600&q=80"
-  },
-  {
-    icon: Bed,
-    title: "Bedrooms",
-    description: "Soft, cozy rugs for ultimate bedroom comfort",
-    image: "/home/bedroom.png"
-  },
-  {
-    icon: Bath,
-    title: "Bathrooms",
-    description: "Plush, absorbent rugs for your bathroom",
-    image: "/home/bathroom.png"
-  },
-  {
-    icon: DoorOpen,
-    title: "Entryways",
-    description: "Welcome guests with stunning entrance rugs",
-    image: "/home/entry.png"
-  },
-  {
-    icon: Lamp,
-    title: "Home Offices",
-    description: "Professional rugs for your workspace at home",
-    image: "/home/homeoff.png"
-  },
-  {
-    icon: Car,
-    title: "Car Interiors",
-    description: "Custom car mats and interior rugs",
-    image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=600&q=80"
-  },
-  {
-    icon: Utensils,
-    title: "Restaurant & Cafes",
-    description: "Create ambiance in dining establishments",
-    image: "/home/restaurant.png"
-  }
-];
+// Kept in lockstep with:
+//  - stitchit-backend: src/modules/room-showcase/dto/room-showcase.dto.ts (ROOM_SHOWCASE_CATEGORIES)
+//  - stitchit-admin:   lib/types/room-showcase.ts (ROOM_SHOWCASE_CATEGORIES)
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  LIVING_ROOM: Sofa,
+  DINING_ROOM: TableProperties,
+  BEDROOM: Bed,
+  BATHROOM: Bath,
+  ENTRYWAY: DoorOpen,
+  HOME_OFFICE: Lamp,
+  CAR_INTERIOR: Car,
+  RESTAURANT_CAFE: Utensils,
+  OFFICE: Lamp,
+  BUSINESS: Building2,
+  KIDS_ROOM: Sofa,
+  CUSTOM: Sparkles,
+}
+const FALLBACK_ICON: LucideIcon = Sparkles
 
 export function UseCasesSection() {
+  const [items, setItems] = useState<RoomShowcaseItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    roomShowcaseApi
+      .getRoomShowcases()
+      .then((data) => setItems(data))
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (!loading && items.length === 0) return null
+
   return (
     <section className="py-20 bg-[#faf9f7]">
       <div className="container mx-auto px-6">
@@ -75,34 +60,41 @@ export function UseCasesSection() {
         </motion.div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {useCases.map((useCase, index) => (
-            <motion.div
-              key={useCase.title}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: index * 0.05 }}
-              whileHover={{ scale: 1.05 }}
-              className="group relative overflow-hidden rounded-lg bg-white border border-border hover:shadow-lg transition-all cursor-pointer"
-            >
-              <div className="relative h-50 overflow-hidden">
-                <Image
-                  src={useCase.image}
-                  alt={useCase.title}
-                  fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <div className="flex items-center gap-2 text-white mb-1">
-                    <useCase.icon className="w-5 h-5" />
-                    <h3 className="font-semibold">{useCase.title}</h3>
-                  </div>
-                  <p className="text-white/80 text-xs">{useCase.description}</p>
-                </div>
-              </div>
-            </motion.div>
-          ))}
+          {loading
+            ? Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="h-50 rounded-lg bg-[#eae5df] animate-pulse" />
+              ))
+            : items.map((item, index) => {
+                const Icon = (item.category && CATEGORY_ICONS[item.category]) || FALLBACK_ICON
+                return (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: index * 0.05 }}
+                    whileHover={{ scale: 1.05 }}
+                    className="group relative overflow-hidden rounded-lg bg-white border border-border hover:shadow-lg transition-all cursor-pointer"
+                  >
+                    <div className="relative h-50 overflow-hidden">
+                      <Image
+                        src={item.imageUrl}
+                        alt={item.title}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <div className="flex items-center gap-2 text-white mb-1">
+                          <Icon className="w-5 h-5" />
+                          <h3 className="font-semibold">{item.title}</h3>
+                        </div>
+                        {item.description && <p className="text-white/80 text-xs">{item.description}</p>}
+                      </div>
+                    </div>
+                  </motion.div>
+                )
+              })}
         </div>
       </div>
     </section>

@@ -27,6 +27,11 @@ export interface ProductsFilters {
   status?: string;
 }
 
+export interface FeaturedProduct extends FinishedProduct {
+  shape?: string | null;
+  price?: number | null;
+}
+
 export const productsApi = {
   getFinishedProducts(filters?: ProductsFilters): Promise<ProductsResponse> {
     const params = new URLSearchParams();
@@ -42,5 +47,12 @@ export const productsApi = {
       method: 'GET',
       skipAuth: true,
     }).catch(() => ({ data: [], total: 0, page: 1, limit: 20 }));
+  },
+
+  getFeaturedProducts(limit = 6): Promise<FeaturedProduct[]> {
+    return apiRequest<FeaturedProduct[]>(`/public/products/featured?limit=${limit}`, {
+      method: 'GET',
+      skipAuth: true,
+    }).catch(() => []);
   },
 };
