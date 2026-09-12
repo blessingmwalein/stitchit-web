@@ -84,9 +84,9 @@ export default function CartPage() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
-                  <Card className="p-6">
-                    <div className="flex gap-4">
-                      <div className="relative w-32 h-32 rounded-lg overflow-hidden flex-shrink-0">
+                  <Card className="p-4 sm:p-6">
+                    <div className="flex gap-3 sm:gap-4">
+                      <div className="relative w-20 h-20 sm:w-32 sm:h-32 rounded-lg overflow-hidden flex-shrink-0">
                         <Image
                           src={item.image}
                           alt={item.name}
@@ -94,11 +94,11 @@ export default function CartPage() {
                           className="object-cover"
                         />
                       </div>
-                      
-                      <div className="flex-1">
-                        <div className="flex justify-between">
-                          <div>
-                            <h3 className="font-semibold text-lg">{item.name}</h3>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between gap-2">
+                          <div className="min-w-0">
+                            <h3 className="font-semibold text-base sm:text-lg truncate">{item.name}</h3>
                             <p className="text-sm text-muted-foreground">Size: {item.size}</p>
                             <p className="text-sm text-muted-foreground">Design: {item.design}</p>
                             <div className="flex gap-1 mt-1 flex-wrap">
@@ -109,9 +109,9 @@ export default function CartPage() {
                               ))}
                             </div>
                           </div>
-                          
-                          <div className="text-right">
-                            <p className="text-xl font-bold text-[var(--orange)]">${item.price}</p>
+
+                          <div className="text-right shrink-0">
+                            <p className="text-lg sm:text-xl font-bold text-[var(--orange)]">${item.price}</p>
                           </div>
                         </div>
 

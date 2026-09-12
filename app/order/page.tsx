@@ -632,7 +632,7 @@ function OrderWizardInner() {
                       <p className="text-sm text-muted-foreground mb-5">
                         Tap to select the colors you'd like — choose as many as you want
                       </p>
-                      <div className="grid grid-cols-9 gap-2.5 max-w-sm">
+                      <div className="grid grid-cols-6 sm:grid-cols-9 gap-2.5 max-w-sm">
                         {COLOR_PALETTE.map((c) => {
                           const selected = colors.includes(c.name);
                           return (

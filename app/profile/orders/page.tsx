@@ -94,7 +94,7 @@ export default function OrderHistoryPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                         {/* Sidebar */}
                         <div className="lg:col-span-1">
-                            <Card className="p-6 sticky top-24">
+                            <Card className="p-6 lg:sticky lg:top-24">
                                 <div className="text-center mb-6">
                                     <div className="w-20 h-20 bg-[var(--orange)]/10 rounded-full flex items-center justify-center mx-auto mb-3">
                                         <User className="w-10 h-10 text-[var(--orange)]" />
@@ -136,13 +136,13 @@ export default function OrderHistoryPage() {
 
                         {/* Main Content */}
                         <div className="lg:col-span-3">
-                            <Card className="p-8 shadow-sm border-none bg-white min-h-[500px]">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h3 className="text-2xl font-semibold">Order History</h3>
-                                    <Button variant="outline" asChild className="hidden sm:flex rounded-full">
+                            <Card className="p-5 sm:p-8 shadow-sm border-none bg-white min-h-[300px] sm:min-h-[500px]">
+                                <div className="flex justify-between items-center mb-6 gap-3">
+                                    <h3 className="text-xl sm:text-2xl font-semibold">Order History</h3>
+                                    <Button variant="outline" asChild className="rounded-full shrink-0">
                                         <Link href="/order">
-                                            <Package className="w-4 h-4 mr-2" />
-                                            New Quick Order
+                                            <Package className="w-4 h-4 sm:mr-2" />
+                                            <span className="hidden sm:inline">New Quick Order</span>
                                         </Link>
                                     </Button>
                                 </div>

@@ -162,18 +162,18 @@ export default function CheckoutPage() {
                   <h3 className="text-xl font-semibold mb-4">Payment Method</h3>
 
                   <Tabs value={paymentMethod} onValueChange={setPaymentMethod}>
-                    <TabsList className="grid w-full grid-cols-3 mb-6">
-                      <TabsTrigger value="card">
-                        <CreditCard className="w-4 h-4 mr-2" />
+                    <TabsList className="grid w-full grid-cols-3 mb-6 h-auto">
+                      <TabsTrigger value="card" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2.5 text-[11px] sm:text-sm">
+                        <CreditCard className="w-4 h-4" />
                         Card
                       </TabsTrigger>
-                      <TabsTrigger value="mobile">
-                        <Smartphone className="w-4 h-4 mr-2" />
-                        Mobile Money
+                      <TabsTrigger value="mobile" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2.5 text-[11px] sm:text-sm">
+                        <Smartphone className="w-4 h-4" />
+                        <span className="text-center leading-tight">Mobile Money</span>
                       </TabsTrigger>
-                      <TabsTrigger value="bank">
-                        <Building2 className="w-4 h-4 mr-2" />
-                        Bank Transfer
+                      <TabsTrigger value="bank" className="flex-col sm:flex-row gap-1 sm:gap-2 h-auto py-2.5 text-[11px] sm:text-sm">
+                        <Building2 className="w-4 h-4" />
+                        <span className="text-center leading-tight">Bank Transfer</span>
                       </TabsTrigger>
                     </TabsList>
 

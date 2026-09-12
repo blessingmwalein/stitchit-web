@@ -137,11 +137,11 @@ export default function DesignPage() {
             <div className="lg:col-span-2">
               <Card className="p-8">
                 <Tabs defaultValue="basics" className="w-full">
-                  <TabsList className="grid w-full grid-cols-4 mb-8">
-                    <TabsTrigger value="basics">Basics</TabsTrigger>
-                    <TabsTrigger value="size">Size</TabsTrigger>
-                    <TabsTrigger value="colors">Colors</TabsTrigger>
-                    <TabsTrigger value="details">Details</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-4 mb-8 h-auto">
+                    <TabsTrigger value="basics" className="h-auto py-2.5 text-xs sm:text-sm">Basics</TabsTrigger>
+                    <TabsTrigger value="size" className="h-auto py-2.5 text-xs sm:text-sm">Size</TabsTrigger>
+                    <TabsTrigger value="colors" className="h-auto py-2.5 text-xs sm:text-sm">Colors</TabsTrigger>
+                    <TabsTrigger value="details" className="h-auto py-2.5 text-xs sm:text-sm">Details</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="basics" className="space-y-6">
